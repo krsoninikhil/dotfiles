@@ -1,0 +1,15 @@
+[submodule ".vim/pack/git-plugins/start/ctrlp.vim"]
+	path = .vim/pack/git-plugins/start/ctrlp.vim
+	url = git@github.com:kien/ctrlp.vim.git
+[submodule ".vim/pack/git-plugins/start/far.vim"]
+	path = .vim/pack/git-plugins/start/far.vim
+	url = git@github.com:brooth/far.vim.git
+[submodule ".vim/pack/git-plugins/start/nerdtree"]
+	path = .vim/pack/git-plugins/start/nerdtree
+	url = git@github.com:scrooloose/nerdtree.git
+[submodule ".vim/pack/git-plugins/start/fzf"]
+	path = .vim/pack/git-plugins/start/fzf
+	url = git@github.com:junegunn/fzf.git
+[submodule ".vim/pack/git-plugins/start/fuzzy-finder"]
+	path = .vim/pack/git-plugins/start/fuzzy-finder
+	url = git@github.com:atom/fuzzy-finder.git

@@ -1,0 +1,19 @@
+set number
+syntax on
+let NERDTreeShowHidden=1
+nmap <F10> :NERDTreeToggle<CR>
+set rtp+=/usr/local/opt/fzf
+set incsearch
+set tabstop=4
+set directory=~/.vim/swapfiles//
+map ; :Files<CR>
+map H gT
+map L gt
+set showcmd
+set wildmenu
+map <C-J> <C-W>j<C-W>_
+map <C-K> <C-W>k<C-W>_
+map <C-H> <C-W>h<C-W>_
+map <C-L> <C-W>l<C-W>_
+" `gf` opens file under cursor in a new vertical split
+nnoremap gf :vertical wincmd f<CR>
