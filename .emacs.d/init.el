@@ -16,11 +16,14 @@
   `((".*" "~/.emacs.d/emacs-saves/" t)))
 
 ;; built-in settings
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(setq inhibit-startup-screen t)
 (set-face-attribute 'default nil :height 150)
 (global-linum-mode 1)
 (pending-delete-mode t)
-(setq mac-command-modifier 'control)
-(setq inhibit-startup-screen t)
+(setq mac-command-modifier 'control)  ;; mac only
 ;; (setq tab-width 4)
 (setq-default indent-tabs-mode nil)
 (setq-default electric-indent-inhibit t)
@@ -28,6 +31,7 @@
 (save-place-mode 1)
 (put 'upcase-region 'disabled nil)
 (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))  ;; mac only
+(global-set-key (kbd "<f8>") 'speedbar)
 
 ;; theme
 (load-theme 'tango-dark)
@@ -39,12 +43,11 @@
 (projectile-global-mode)
 
 ;; always enabled modes
-(company-mode)  ;; auto-completion
+(add-hook 'after-init-hook 'global-company-mode)  ;; auto-completion
 (dumb-jump-mode)  ;; goto definition
 
 ;; enabling modes according to extension
 (add-to-list 'auto-mode-alist '("\\.php\\'" . php-mode))
-(add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . org-mode))
 (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
@@ -65,6 +68,17 @@
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 (define-key mc/keymap (kbd "<return>") nil)
+
+;; helm
+(require 'helm)
+(require 'helm-config)
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
+(helm-autoresize-mode 1)
+(global-set-key (kbd "M-x") 'helm-M-x)
+(setq helm-M-x-fuzzy-match t)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(helm-mode 1)
 
 ;; load user lisp
 (add-to-list 'load-path "~/.emacs.d/user-lisp")
@@ -89,11 +103,11 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    (quote
-    ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" default)))
+    ("a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" default)))
  '(fringe-mode nil nil (fringe))
  '(package-selected-packages
    (quote
-    (restclient wgrep-ag expand-region php-mode solarized-theme magit multiple-cursors ag dumb-jump goto-last-change company web-mode projectile)))
+    (helm restclient wgrep-ag expand-region php-mode solarized-theme magit multiple-cursors ag dumb-jump goto-last-change company web-mode projectile)))
  '(send-mail-function (quote mailclient-send-it))
  '(show-paren-mode t))
 (custom-set-faces
