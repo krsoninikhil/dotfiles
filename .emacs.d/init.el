@@ -80,6 +80,13 @@
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (helm-mode 1)
 
+;; markdown realtime preview
+(global-set-key (kbd "<f9>") 'flymd-flyit)
+
+;; community hosted lisp
+(add-to-list 'load-path "~/.emacs.d/user-lisp/php-eldoc")
+(require 'php-eldoc)
+
 ;; load user lisp
 (add-to-list 'load-path "~/.emacs.d/user-lisp")
 (require 'defuns)
@@ -107,7 +114,7 @@
  '(fringe-mode nil nil (fringe))
  '(package-selected-packages
    (quote
-    (helm restclient wgrep-ag expand-region php-mode solarized-theme magit multiple-cursors ag dumb-jump goto-last-change company web-mode projectile)))
+    (flymd helm restclient wgrep-ag expand-region php-mode solarized-theme magit multiple-cursors ag dumb-jump goto-last-change company web-mode projectile)))
  '(send-mail-function (quote mailclient-send-it))
  '(show-paren-mode t))
 (custom-set-faces
