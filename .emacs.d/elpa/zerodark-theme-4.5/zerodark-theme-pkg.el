@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "zerodark-theme" "4.5" "A dark, medium contrast theme for Emacs" '((all-the-icons "2.0.0") (magit "2.8.0") (flycheck "29")) :commit "ceb46240636865e86f3fe26906957943ba7bd73c" :keywords '("themes") :authors '(("Nicolas Petton" . "nicolas@petton.fr")) :maintainer '("Nicolas Petton" . "nicolas@petton.fr") :url "https://github.com/NicolasPetton/zerodark-theme")
