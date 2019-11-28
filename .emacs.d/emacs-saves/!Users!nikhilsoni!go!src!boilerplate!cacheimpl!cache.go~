@@ -1,0 +1,77 @@
+package cacheimpl
+
+import (
+	"encoding/binary"
+	"errors"
+	"log"
+	"payoutapi/domains"
+
+	"github.com/bradfitz/gomemcache/memcache"
+)
+
+var errNonNumericType = errors.New("Not numeric type")
+
+// Init creates connection to cache host
+func Init(host string) *Cache {
+	return &Cache{
+		Client: memcache.New(host),
+	}
+}
+
+// Cache implements interface for caching
+type Cache struct {
+	Client *memcache.Client
+}
+
+// GetNumeric retrieves a given key value as number
+func (c *Cache) GetNumeric(key string) (uint64, error) {
+	it, err := c.Client.Get(key)
+	if err != nil {
+		return 0, c.getCacheError(err)
+	}
+
+	if len(it.Value) != 8 {
+		return 0, c.getCacheError(errNonNumericType)
+	}
+	val := binary.LittleEndian.Uint64(it.Value)
+	return val, nil
+}
+
+// SetNumeric sets a given number as value
+func (c *Cache) SetNumeric(key string, data uint64, ttl int32) error {
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, data)
+	err := c.Client.Set(&memcache.Item{Key: key, Value: buf, Flags: 0, Expiration: ttl})
+	if err != nil {
+		log.Println("Error in setting numeric in cache:", key, ":", data)
+	}
+	return err
+}
+
+// IncrementNumeric increments key value by given change and update TTL
+func (c *Cache) IncrementNumeric(key string, delta uint64, ttl int32) error {
+	val, err := c.GetNumeric(key)
+	if err != nil {
+		log.Println("Error in getting numeric from cache:", key)
+		return c.getCacheError(err)
+	}
+	return c.SetNumeric(key, val+delta, ttl)
+}
+
+// Convert cache implementaton specific errors to application's CacheError type
+func (c *Cache) getCacheError(err error) error {
+	switch err {
+	case memcache.ErrCacheMiss:
+		return domains.ErrCacheMiss
+	case memcache.ErrNotStored:
+		return domains.ErrWritingCache
+	case memcache.ErrMalformedKey:
+		return domains.ErrBadCacheKey
+	default:
+		//case memcache.ErrServerError:
+		//case memcache.ErrNoServers:
+		//case memcache.ErrCASConflict:
+		//case memcache.ErrNoStats:
+		return domains.ErrCacheInternal
+	}
+}

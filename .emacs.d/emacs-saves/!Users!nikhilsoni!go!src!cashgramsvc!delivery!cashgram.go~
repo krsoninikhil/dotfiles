@@ -1,0 +1,81 @@
+package delivery
+
+import (
+	"cashgramsvc/validator"
+	"log"
+	"net/http"
+	"payoutapi/domains"
+	"payoutapi/service"
+
+	"github.com/labstack/echo"
+)
+
+const (
+	urlPreV1 = "/v1/accounts/:accountID/cashgram"
+	cgLog    = "cgHandler#"
+)
+
+// ConfigureCashgramHandler configures handler for cashgram
+func ConfigureCashgramHandler(e *echo.Echo, cs service.Cashgram) {
+	h := &cgHandler{cgSvc: cs}
+	addCashgramHandlersV1(e, h)
+}
+
+func addCashgramHandlersV1(e *echo.Echo, h *cgHander) {
+	e.POST(urlPreV1, h.create)
+	e.GET(urlPreV1+"/:cgID/status", h.showStatus)
+	e.DELETE(urlPreV1+"/:cgID", h.destroy)
+}
+
+type cgHandler struct {
+	cgSvc service.Cashgram
+}
+
+func (h *cgHandler) create(c echo.Context) error {
+	params := models.CreateCGRequest{}
+	if err := parseRequest(c, &params); err != nil {
+		return getErrorResponse("create", err)
+	}
+
+	res, err := h.cgSvc.Create(c.Request().Context(), params)
+	if err != nil {
+		log.Println(cgLog+"create", err)
+		return getErrorResponse(err)
+	}
+	return c.JSON(http.StatusCreated, res)
+}
+
+func (h *cgHandler) showStatus(c echo.Context) error {
+}
+
+func (h *cgHandler) destroy(c echo.Context) error {
+}
+
+func getErrorResponse(src string, err error) error {
+	log.Println(cgLog+src, err)
+	status := http.StatusInternalServerError
+	errType := "SERVER_ERROR"
+	switch err.(type) {
+	case models.FormatError:
+		return nil
+	}
+	return c.JSON(http.StatusBadRequest, prob)
+}
+
+// parseRequest validates the request parameters
+func parseRequest(c echo.Context, i interface{}) (err error) {
+	if err = validator.BindValidation(c.Request().Body, i); err != nil {
+		return &models.FormatError{
+			AppError:   &domains.AppError{Msg: err.Error()},
+			StatusCode: http.StatusPreconditionFailed,
+		}
+	}
+
+	if err = c.Validate(i); err != nil {
+		return &_HTTPError{
+			AppError:   &domains.AppError{Msg: err.Error()},
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+	}
+	return nil
+}

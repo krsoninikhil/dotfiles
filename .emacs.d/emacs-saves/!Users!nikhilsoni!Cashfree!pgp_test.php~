@@ -1,0 +1,15 @@
+<?php
+function pgpDecrypt($data, $pvtKeyPath) {
+        $key = file_get_contents($pvtKeyPath);
+        putenv("GNUPGHOME=/pubkeys/.gnupg");
+
+        $gpg = new gnupg();
+        $keyInfo = $gpg->import($key);
+        $gpg->adddecryptkey($keyInfo["fingerprint"], "");
+        $enc = $gpg->decrypt($data);
+        return $enc;
+    }
+
+$data = "Cashfree";
+    $pvtKeyPath = "/usr/local/crt/private.pgp";
+    phpDecrypt($data, $pvtKeyPath);

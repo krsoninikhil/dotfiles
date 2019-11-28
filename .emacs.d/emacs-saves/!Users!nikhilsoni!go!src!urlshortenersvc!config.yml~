@@ -1,0 +1,12 @@
+debug: true
+port: "9188"
+stage: "DEVO"
+timeout: 30
+svcbase:
+  auth: "https://test-k8s.cashfree.com/payoutmerchantauthsvc"
+  beneficiary: "https://test-k8s.cashfree.com/payoutbenesvc"
+  transfer: "https://test-k8s.cashfree.com/payouttransfersvc"
+  account: "https://test-k8s.cashfree.com/payoutmerchantsvc"
+  cashgram: "https://test-k8s.cashfree.com/cashgramsvc"
+  bankvalidation: "https://test-k8s.cashfree.com/payoutbankvalidationsvc"
+  cache: "localhost:11211"

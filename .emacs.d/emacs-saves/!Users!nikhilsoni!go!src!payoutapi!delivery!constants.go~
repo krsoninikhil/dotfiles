@@ -1,0 +1,5 @@
+package delivery
+
+const (
+	urlPreV1 = "payout/v1"
+)

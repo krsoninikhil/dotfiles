@@ -1,0 +1,5 @@
+fn main() {
+    let a = Box::leak(Box::new(2));
+    *a += 1;
+    println!("{:?}", a);
+}

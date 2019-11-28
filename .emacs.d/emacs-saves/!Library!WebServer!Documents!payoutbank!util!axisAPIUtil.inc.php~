@@ -1,0 +1,330 @@
+<?php
+
+class YesbUPIUtil {
+
+	public static function makeTransfer($transferDetails, $config) {
+
+		$validVPAresponse = static::verifyVPADetails($transferDetails, $config);
+
+		$yesUpiResponse = array();
+		$yesUpiResponse["transferType"]="UPI";
+		$yesUpiResponse["status"] = 0;
+		$yesUpiResponse["errorCode"] = "ERROR_FETCHING_STATUS";
+
+		if (!isset($validVPAresponse['statusCode']) || ($validVPAresponse['statusCode'] != "VN")) {
+			if(isset($validVPAresponse['name'])) {
+				$transferDetails["fullName"] = $validVPAresponse["name"];
+			}
+			if(strlen($transferDetails["fullName"]) < 5) {
+				$transferDetails["fullName"] .= " Cashfree";
+			}
+			$requestParams = static::getTransferRequestParams($transferDetails, $config);
+			$enckey = $config["merchantkey"];
+
+			$requestData = array();
+			$requestData["requestMsg"] = static::encryptValue($requestParams,$enckey);
+			$requestData["pgMerchantId"] = $config["pgMerchantId"];
+			$reqMessage = json_encode($requestData);
+
+			$transferResponseJSON = static::makeRequest($reqMessage, $config);
+			$transferResp = static::decryptValue($transferResponseJSON, $enckey);
+			if(!$transferResp) {
+				$yesUpiResponse["message"] = "Response is empty or error while decrypting";
+				error_log("CF_DEBUG :: ERROR_BANK_RESPONSE :: YES-UPI-PAY ::".json_encode($requestParams));
+			} else {
+				$yesUpiResponse = static::parseTransferResponse($transferResp);
+			}
+
+		} else {
+			$yesUpiResponse["errorCode"] = "INVALID_ACCOUNT_FAIL";
+			$yesUpiResponse["message"] = "Please provide valid Virtual Address";
+			error_log("CF_DEBUG :: ERROR_BANK_RESPONSE :: YES-UPI-PAY :: INVALID_VPA :: ".json_encode($transferDetails));
+		}
+
+		return $yesUpiResponse;
+	}
+
+	public static function verifyVPADetails($tfReferenceNo, $config) {
+
+		$requestParams = static::getVPAparams($tfReferenceNo, $config);
+		$enckey = $config["merchantkey"];
+		$requestData = array();
+		$requestData["requestMsg"] = static::encryptValue($requestParams,$enckey);
+		$requestData["pgMerchantId"] = $config["pgMerchantId"];
+
+		$reqMessage = json_encode($requestData);
+		$ResponseJSON = static::verifyVPARequest($reqMessage, $config);
+		$vpaResp = static::decryptValue($ResponseJSON, $enckey);
+		if(!$vpaResp) {
+			$verifyVPAResponse = array();
+			error_log("CF_DEBUG :: ERROR_BANK_RESPONSE :: YES-UPI-VERIFY-VPA :: REQ::".json_encode($requestParams));
+		} else {
+			$verifyVPAResponse = static::parseVPAStatusResponse($vpaResp);
+		}
+
+		return $verifyVPAResponse;
+
+	}
+
+	public static function getStatus($tfReferenceNo, $config) {
+
+		$requestParams = static::getCheckStatusParams($tfReferenceNo, $config);
+		$pgMerchantId = $config["pgMerchantId"];
+		$enckey = $config["merchantkey"];
+		$requestData = array();
+		$requestData["requestMsg"] = static::encryptValue($requestParams,$enckey);
+		$requestData["pgMerchantId"] = $pgMerchantId;
+		$reqMessage = json_encode($requestData);
+		$ResponseJSON = static::checkTransferStatusRequest($reqMessage, $config);
+		$getStatusResp = static::decryptValue($ResponseJSON,$enckey);
+		$getStatusResponse = array();
+		if(!$getStatusResp) {
+			error_log("CF_DEBUG :: ERROR_BANK_RESPONSE :: YES-UPI-CHECK-STATUS ::".json_encode($requestParams));
+		} else {
+			$getStatusResponse = static::parseCheckStatusResponse($getStatusResp);
+		}
+
+		return $getStatusResponse;
+	}
+
+	private static function parseTransferResponse ($transferResp = NULL) {
+
+		$yesUpiResponse = array();
+		$yesUpiResponse["transferType"]="UPI";
+
+		if(!$transferResp){
+			$yesUpiResponse["status"] = 0;
+			$yesUpiResponse["errorCode"] = "REQUEST_TIMEDOUT";
+			$yesUpiResponse["message"] = "Time out";
+		}else {
+
+			list($yesUpiResponse["YBLTXNID"],$yesUpiResponse["ORDERNO"],$yesUpiResponse["AMOUNT"],$yesUpiResponse["DATE"],
+					$yesUpiResponse["STATUSCODE"],$yesUpiResponse["STATUSDESC"],$yesUpiResponse["RESPCODE"],$yesUpiResponse["APPROVALNUM"],
+					$yesUpiResponse["PRFVADDR"],$yesUpiResponse["TXNID"],$yesUpiResponse["URN"],
+					$yesUpiResponse["PRACCNO"],$yesUpiResponse["PRIFSC"],$yesUpiResponse["PRACCNAME"],$yesUpiResponse["ERRORCODE"],$yesUpiResponse["RESPERRORCODE"],$yesUpiResponse["TRNTYPE"],$yesUpiResponse["PYVADDR"])=explode('|', $transferResp);
+
+			if (isset($yesUpiResponse["STATUSCODE"]) && $yesUpiResponse["STATUSCODE"] == "S" ) {
+				$yesUpiResponse["status"] = 1;
+				$yesUpiResponse["message"] = "Transfer processed";
+				$yesUpiResponse["statusCode"] = "COMPLETED";
+				if(isset($yesUpiResponse["URN"]))
+				{
+					$yesUpiResponse["txStatusResponse"]["bankReferenceNo"] = $yesUpiResponse["URN"];
+				}
+
+				error_log("CF_DEBUG :: SUCCESS_BANK_RESPONSE :: YES-UPI ::" .json_encode($transferResp));
+				return $yesUpiResponse;
+			}
+			else if($yesUpiResponse["STATUSCODE"]=="F"){
+				$yesUpiResponse["status"] = 0;
+				$yesUpiResponse["errorCode"] = static::getErrorCodeFromBankCode($yesUpiResponse["STATUSCODE"]);
+			}
+		}
+		error_log("CF_DEBUG :: ERROR_BANK_RESPONSE :: YES-UPI ::".json_encode($yesUpiResponse));
+		return $yesUpiResponse;
+	}
+
+	private static function makeRequest ($reqMessage, $config) {
+		$endpoint = $config["endpoint"];
+		if(defined("STAGE") && STAGE == "PROD") {
+			$requestUrl = $endpoint."/mePayServerReqImp";
+		}
+		else $requestUrl = $endpoint."/mePayServerReqImps";
+		return static::makeCurlCall($config, $requestUrl, $reqMessage);
+	}
+
+	private static function verifyVPARequest ($reqMessage, $config) {
+		$endpoint = $config["endpoint"];
+		if(defined("STAGE") && STAGE == "PROD") {
+			$requestUrl = $endpoint."/checkVirtualAddressME";
+		}
+		else $requestUrl = $endpoint."/CheckVirtualAddress";
+		$timeout = 15;
+		return static::makeCurlCall($config, $requestUrl, $reqMessage, $timeout);
+	}
+
+	private static function checkTransferStatusRequest ($reqMessage, $config) {
+		$endpoint = $config["endpoint"];
+		$requestUrl = $endpoint."/meTransStatusQuery";
+		return static::makeCurlCall($config, $requestUrl, $reqMessage);
+	}
+
+	private static function getTransferRequestParams($transferDetails, $config) {
+
+		$requestDetail = $config["pgMerchantId"].'|';
+		$requestDetail.= $transferDetails["cfTransferId"];
+		$requestDetail.= '|'.$transferDetails["remarks"];
+		$requestDetail.= '|'.$transferDetails["transferAmount"];
+		$requestDetail.= '|'.'INR';
+		$requestDetail.= '|'.$config['paymentType'];
+		$requestDetail.= '|'.$config['trnType'];
+		$requestDetail.= '|'.$config["mcccode"];
+		$requestDetail.= '|'; //expiryTime
+		$requestDetail.= '|'; //.$transferDetails["payeeAccNo"];
+		$requestDetail.= '|'; //.$transferDetails["payeeIFSC"];
+		$requestDetail.= '|'; //.$transferDetails["payeeAadharNo"];
+		$requestDetail.= '|'; //payeeMobNo
+		$requestDetail.= '|'.$transferDetails["vpa"];
+		$requestDetail.= '|'; //Sub-Merchant ID
+		$requestDetail.= '|'; //White Listed Accounts
+		$requestDetail.= '|'; //Payee MMID
+		$requestDetail.= '|'; //Ref. URL
+		$requestDetail.= '|'.'UPI';
+		$requestDetail.= '|'.$transferDetails["fullName"];
+		$requestDetail.= '|'; //Payee Address
+		$requestDetail.= '|'; //Email address of the Payee
+		$requestDetail.= '|'; //Payer Account Number
+		$requestDetail.= '|'; //Payer IFSC
+		$requestDetail.= '|'; //Payer Mobile No
+		$requestDetail.= '|'.'VPA'; //Account/ VPA/ AADHAAR
+		$requestDetail.= '|||||||||NA|NA';
+		return $requestDetail;
+	}
+
+	private static function getVPAparams($transferDetails, $config) {
+
+		$requestDetail = $config["pgMerchantId"].'|'.$transferDetails["cfTransferId"];
+		$requestDetail.= '|'.$transferDetails["vpa"];
+		$requestDetail.='|T|com.mgs.yesapp|19.0990990990991,72.93361873011337|Mumbai,Maharashtra,India|172.16.50.168|MOB|5200000200010004000639292929292|Android5.1.1|862315036516077|862315036516077|862315036516077|862315036516077|862315036516077|NA|NA|NA|NA|NA|NA|NA|NA|NA|NA';
+		return $requestDetail;
+	}
+
+	private static function parseVPAStatusResponse ($statusResp = NULL) {
+		$yesVPAresponse = array();
+		if($statusResp) {
+			list($yesVPAresponse['yblRefNo'], $yesVPAresponse['vpa'], $yesVPAresponse['name'], $yesVPAresponse['statusCode'], $yesVPAresponse['statusDesc']) = explode('|', $statusResp);
+		}
+		return $yesVPAresponse;
+	}
+
+	private static function encryptValue($inputVal,$secureKey) {
+		$key='';
+		for ($i=0; $i < strlen($secureKey)-1; $i+=2)
+		{
+			$key .= chr(hexdec($secureKey[$i].$secureKey[$i+1]));
+		}
+		$block = 16;
+		$pad = $block - (strlen($inputVal) % $block);
+		$inputVal .= str_repeat(chr($pad), $pad);
+		$enc = bin2hex(openssl_encrypt($inputVal, 'AES-128-ECB', $key, OPENSSL_RAW_DATA));
+		return $enc;
+	}
+
+	private static function makeCurlCall($config, $apiURL, $requestData, $timeout = 15) {
+
+		$ch = curl_init($apiURL);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $requestData);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		if(defined("STAGE") && STAGE != "PROD") {
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		}
+		curl_setopt($ch, CURLOPT_SSLCERT, "/usr/local/crt/gocash_merged.pem");
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+					'X-IBM-Client-Secret:'.$config['clientSecret'],
+					'X-IBM-Client-ID:'.$config['clientId'])
+			   );
+
+		$jsonResponse = curl_exec($ch);
+		curl_close ($ch);
+		return $jsonResponse;
+	}
+
+	private static function decryptValue($inputVal,$secureKey)
+	{
+		$key='';
+		for ($i=0; $i < strlen($secureKey)-1; $i+=2) {
+			$key .= chr(hexdec($secureKey[$i].$secureKey[$i+1]));
+		}
+
+		$encblock='';
+		for ($i=0; $i < strlen($inputVal)-1; $i+=2) {
+			$encblock .= chr(hexdec($inputVal[$i].$inputVal[$i+1]));
+		}
+		$dec = openssl_decrypt($encblock, 'AES-128-ECB', $key, OPENSSL_RAW_DATA);
+		return $dec;
+
+	}
+
+	private static function parseCheckStatusResponse ($statusResp = NULL) {
+
+		$yesUpiResponse = array();
+
+		$yesUpiResponse["status"] = 0;
+		$yesUpiResponse["transferType"]="UPI";
+		$yesUpiResponse["errorCode"] = "ERROR_FETCHING_STATUS";
+
+		if(!$statusResp){
+			$yesUpiResponse["errorCode"] = "REQUEST_TIMEDOUT";
+			$yesUpiResponse["message"] = "Time out";
+		}
+		else {
+
+			list($yesUpiResponse["YBLTXNID"],$yesUpiResponse["ORDERNO"],$yesUpiResponse["AMOUNT"],$yesUpiResponse["DATE"],
+					$yesUpiResponse["STATUSCODE"],$yesUpiResponse["STATUSDESC"],$yesUpiResponse["RESPCODE"],$yesUpiResponse["APPROVALNUM"],
+					$yesUpiResponse["PRFVADDR"],$yesUpiResponse["TXNID"],$yesUpiResponse["ERRORCODE"],$yesUpiResponse["URN"],
+					$yesUpiResponse["PRACCNO"],$yesUpiResponse["PRIFSC"],$yesUpiResponse["PRACCNAME"],$yesUpiResponse["PYVADDR"],$yesUpiResponse["RESPERRORCODE"])=explode('|', $statusResp);
+
+			if (isset($yesUpiResponse["URN"])) {
+				$yesUpiResponse["txStatusResponse"]["bankReferenceNo"] = $yesUpiResponse["URN"];
+			}
+			if (isset($yesUpiResponse["STATUSCODE"]) && $yesUpiResponse["STATUSCODE"] == "SUCCESS") {
+
+				$yesUpiResponse["status"] = 1;
+				$yesUpiResponse["message"] = "Transfer processed";
+				$yesUpiResponse["statusCode"] = "COMPLETED";
+
+				error_log("CF_DEBUG :: SUCCESS_BANK_CHECK_RESPONSE :: YES-UPI ::" . json_encode($statusResp));
+				return $yesUpiResponse;
+			}
+			else if ($yesUpiResponse["STATUSCODE"] == "FAILED" || $yesUpiResponse["STATUSCODE"] == "FAILURE") {
+				if(isset($yesUpiResponse["STATUSDESC"])) {
+					$yesUpiResponse["errorCode"] = static::getErrorCodeFromBankCode($yesUpiResponse["STATUSCODE"], $yesUpiResponse["STATUSDESC"]);
+				}
+				else $yesUpiResponse["errorCode"] = static::getErrorCodeFromBankCode($yesUpiResponse["STATUSCODE"]);
+			}
+
+			error_log("CF_DEBUG :: ERROR_BANK_RESPONSE :: YES-UPI ::".json_encode($yesUpiResponse));
+			return $yesUpiResponse;
+		}
+	}
+
+	private static function getCheckStatusParams($tfReferenceNo, $config) {
+
+		$requestDetail = $config["pgMerchantId"].'|';
+		$requestDetail.= $tfReferenceNo;
+		$requestDetail.= '||||||||||||NA|NA';
+		return $requestDetail;
+	}
+
+	private static function getErrorCodeFromBankCode($bankCode, $desc = "") {
+
+		switch ($bankCode) {
+
+			case 'S':                            // IMPS Success
+			case 'SUCCESS':
+				return 'COMPLETED';
+
+			case 'FAILED':
+			case 'FAILURE':
+				$errorDesc1 = "Reversal: Debit Success";
+				$errorDesc2 = "Transaction fail";
+				$errorDesc3 = "NORECORD";
+				if ((stripos($desc, $errorDesc1) !== false) || (stripos($desc, $errorDesc2) !== false) || (stripos($desc, $errorDesc3) !== false)) {
+					return 'BAD_REQUEST';
+				}
+				return 'ERROR_FETCHING_STATUS';
+
+			case 'NORECORD':                     // Record Not Found
+				return 'IN_PROCESS';
+
+			default:
+				return 'ERROR_FETCHING_STATUS';
+		}
+
+	}
+}
+
+?>

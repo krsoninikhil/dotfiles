@@ -1,0 +1,18 @@
+package main
+
+import "fmt"
+
+func main() {
+	const data = "Cashfree"
+	enc := encrypt(data)
+	fmt.Println("ENC", enc)
+	fmt.Println("DEC", decrypt(enc))
+}
+
+func encrypt(data string) string {
+	return ""
+}
+
+func decrypt(encData string) string {
+
+}

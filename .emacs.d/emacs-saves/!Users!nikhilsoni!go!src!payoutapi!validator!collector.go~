@@ -1,0 +1,38 @@
+package validator
+
+import (
+	"errors"
+	"strings"
+)
+
+type errorCollector []error
+
+func (c *errorCollector) collect(e error) {
+	*c = append(*c, e)
+}
+
+func (c *errorCollector) create(fld string, tag string, param string) error {
+	var message string
+	switch tag {
+	case "required":
+		message = "is missing in the request"
+	case "_datevalid":
+		message = "is a date field and should be of type YYYY-MM-DD"
+	case "min":
+		message = "should be at least " + param
+	case "max":
+		message = "should be at max " + param
+	default:
+		message = "should be " + param
+	}
+	return errors.New(fld + " " + message)
+}
+
+func (c *errorCollector) Error() string {
+	message := ""
+	for _, e := range *c {
+		message += e.Error() + ", "
+	}
+	message = strings.TrimRight(message, ", ")
+	return message
+}

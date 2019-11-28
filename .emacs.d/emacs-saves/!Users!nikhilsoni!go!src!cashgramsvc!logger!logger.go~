@@ -1,0 +1,11 @@
+package logger
+
+import "go.uber.org/zap"
+
+var (
+	H *zap.Logger
+)
+
+func Init() {
+
+}

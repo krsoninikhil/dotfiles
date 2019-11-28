@@ -1,0 +1,8 @@
+FROM scratch
+
+WORKDIR /entrypoint
+EXPOSE 9188
+
+# this assumes build binary already exists
+ADD bin/main-linux start
+CMD ["./start"]

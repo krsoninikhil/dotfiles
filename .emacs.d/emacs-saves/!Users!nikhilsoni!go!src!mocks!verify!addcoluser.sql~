@@ -1,0 +1,7 @@
+-- Verify proj:addcoluser on mysql
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

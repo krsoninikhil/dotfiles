@@ -1,0 +1,43 @@
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"git.cashfree.com/cashfree/payout/config"
+	"git.cashfree.com/cashfree/payout/delivery"
+	"git.cashfree.com/cashfree/payout/serviceimpl"
+	"github.com/labstack/echo"
+
+	"github.com/labstack/echo/middleware"
+	validator "gopkg.in/go-playground/validator.v9"
+)
+
+type customValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *customValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
+}
+
+func main() {
+	configFile := "config/config.yml"
+	cfg := config.LoadConfig(configFile)
+	if cfg.Debug {
+		log.Println("Running in DEBUG mode")
+	}
+
+	e := echo.New()
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "[${time_rfc3339}] ${method} ${uri} ${status}\n",
+	}))
+	e.Use(middleware.Recover())
+	e.Validator = &customValidator{validator: validator.New()}
+
+	// inject required serivce implementation in delivery layer
+	bs := &serviceimpl.Bene{}
+	delivery.ConfigureBeneHandler(e, bs)
+
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", cfg.Port)))
+}

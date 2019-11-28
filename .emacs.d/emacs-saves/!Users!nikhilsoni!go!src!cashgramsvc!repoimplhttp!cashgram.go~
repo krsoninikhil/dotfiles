@@ -1,0 +1,38 @@
+package repoimplhttp
+
+import (
+	"context"
+	"log"
+	"net/http"
+)
+
+const (
+	cgRes = "cashgram"
+	cgLog = "repoimplhttp.Cashgram#"
+)
+
+// Cashgram implements interface for Cashgram repository
+type Cashgram struct {
+	Client    *http.Client
+	CGSvcBase string
+}
+
+// Create ...
+func (r *Cashgram) Create(ctx context.Context, p models.CreateRequest) (models.CreateCashgramIntResponse, error) {
+	return nil, nil
+}
+
+// Showstatus ...
+func (r *Cashgram) ShowStatus(ctx context.Context, p models.ShowStatusRequest) (models.ShowStatusCashgramIntResponse, error) {
+	return nil, nil
+}
+
+// Destroy ...
+func (r *Cashgram) Destroy(ctx context.Context, cgID string) (models.DestroyIntResponse, error) {
+	res, err := b.Client.Delete(b.CGSvcBase+getAccountRes(ctx)+cgRes+sep+cgID, nil)
+	if err != nil {
+		log.Println(cgLog+"Destroy", err)
+		return nil, getServerAppError()
+	}
+	return parseDestroyResponse(res)
+}

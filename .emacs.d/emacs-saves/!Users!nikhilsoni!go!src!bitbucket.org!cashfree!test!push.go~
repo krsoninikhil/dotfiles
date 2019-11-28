@@ -1,0 +1,27 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"net/http/httputil"
+	"time"
+)
+
+func printRequest(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("==================================================", time.Now().String())
+	requestDump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(requestDump))
+	fmt.Println("==================================================")
+
+	fmt.Fprintf(w, "Your request has been processed!")
+}
+
+func main() {
+	http.HandleFunc("/", printRequest)
+	err := http.ListenAndServeTLS(":8080", "/usr/local/crt/cftest.crt", "/usr/local/crt/cftest.pem", nil)
+	log.Fatal(err)
+}

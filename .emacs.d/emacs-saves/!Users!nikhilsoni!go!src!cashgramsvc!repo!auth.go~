@@ -1,0 +1,10 @@
+package repo
+
+import (
+	"cashgramsvc/models"
+	"context"
+)
+
+type Auth interface {
+	Sign(ctx context.Context, accountID int, data *models.WebhookParams)
+}

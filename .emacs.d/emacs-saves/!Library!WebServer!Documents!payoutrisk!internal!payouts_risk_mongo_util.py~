@@ -1,0 +1,10 @@
+import datetime
+
+
+def update(mongo, account_id, result):
+    collec = mongo.cfsellers.PayoutRiskData
+    collec.update_one(
+        {'accountId': account_id, 'date': datetime.date.today()},
+        {'$set': result},
+        upsert = True
+    )

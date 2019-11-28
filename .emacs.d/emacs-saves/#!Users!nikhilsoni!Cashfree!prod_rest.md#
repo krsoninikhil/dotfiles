@@ -1,0 +1,69 @@
+# variables
+# logesh account
+:host = https://payout-api.cashfree.com/payout/v1
+:clientId = 32ad3ee56757cc814fca6d23
+:clientSecret = 733903b1eb13501b7089b45464c87f7a0e390d76
+# revamp test account
+#:host = https://prod.cashfree.com/payout/v1
+#:clientId = CF32DOM6LFGMLT266EA
+#:clientSecret = be7f070457e0fede50fe272ec22396100f768f2c
+
+:token = ab9JCVXpkI6ICc5RnIsICN4MzUIJiOicGbhJye.ab0nIIRVVB9VSQFEVV9UWBBlI6IiY1NnIsYDO4AjN5QzN1EjOiQXYpJCL2gDNxYTO0cTNxojIwhXZiwiIz4iNz4SM14iNwEjI6ICcpJCLlNHbhZmOis2Ylh2QlJXd0Fmbnl2ciwSM6ICZJRnb192YjFmIsIyMyQmNhNmZ0EDOjN2N1cjN1UWZzQWYyMjI6ICZJRnbllGbjJye.abHBG3ZYbKioG5PLgs6VEfecpAnuY3h7dOZrUpBSSNPkz1oJf8MF2FEzzfwkc-iWLK
+
+# auth
+POST :host/authorize
+X-Client-Id: :clientId
+X-Client-Secret: :clientSecret
+
+# verify
+POST :host/verifyToken
+Authorization: Bearer :token
+
+# new payout request transfer
+POST :host/requestTransfer
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"transferId": "cont_test_2", "amount": 1.3, "beneId": "JOE_KOTAK_BANK"}
+
+
+# add bene
+POST :host/addBeneficiary
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"beneId": "HDFC_VISA", "name": "Nikhil", "phone": "9758334169", "email": "nikhil@cashfree.com", "address1": "bangalore", "city": "Bangalore", "state": "Karnataka", "cardNo": "4893772902398763"}
+
+#  request transfer
+POST :host/requestTransfer
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"transferId": "YES8", "amount": 1.1, "beneId": "ICICI_VISA", "transferMode": "card"}
+
+# get transfer status
+GET :host/getTransferstatus?referenceId=52482586
+Authorization: Bearer :token
+
+# upi validation
+GET :host/validation/upiDetails?vpa=success@upi&name=Cashfree
+Authorization: Bearer :token
+
+# get bene details
+GET :host/getBeneficiary/HDFC_VISA
+Authorization: Bearer :token
+
+# new payout create cashgram
+POST :host/createCashgram
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"cashgramId": "test11", "amount": 1.05, "name": "Nikhil Soni","email": "nikhil@gocashfree.com", "phone": "9758334169" ,"remarks" :"This is a for people of earth","notifyCustomer": 1, "linkExpiry": "2019/11/30"}
+
+# get cashgram status
+GET :host/getCashgramStatus?cashgramId=test3
+Authorization: Bearer :token
+
+# get balance
+GET :host/getBalance
+Authorization: Bearer :token

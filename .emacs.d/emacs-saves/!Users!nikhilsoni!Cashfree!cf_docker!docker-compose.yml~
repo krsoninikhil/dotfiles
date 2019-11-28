@@ -1,0 +1,66 @@
+version: '3'
+services:
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile-apps
+        image: cf_dev_box:latest
+        container_name: web
+        ports:
+            - "80:80"
+        volumes:
+            - /cfroot:/cfroot
+            # - /cardserviceroot:/cardserviceroot
+            - /Library/WebServer/Documents:/var/www/html
+        networks:
+            - cf_net
+    mysql:
+        build:
+            context: .
+            dockerfile: Dockerfile-mysql
+        image: cf_dev_mysql:latest
+        container_name: mysql
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./mysql_data:/var/lib/mysql
+            - ./shared:/shared
+        networks:
+            - cf_net
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: nfcpay.123
+            MYSQL_USER: nfcpay
+            MYSQL_PASSWORD: nfcpay.123
+            MYSQL_DATABASE: cfsellers
+    mongodb:
+        build:
+            context: .
+            dockerfile: Dockerfile-mongodb
+        image: cf_dev_mongodb:latest
+        container_name: mongodb
+        ports:
+            - "27018:27017"
+        volumes:
+            - ./mongodb_data:/data/db
+            - ./shared:/shared
+        networks:
+            - cf_net
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: nfcpay
+            MONGO_INITDB_ROOT_PASSWORD: nfcpay.123
+            MONGO_INITDB_DATABASE: cfsellers
+    memcached:
+        image: memcached:latest
+        container_name: memcached
+        ports:
+            - "11212:11211"
+        volumes:
+            - ./shared:/shared
+        networks:
+            - cf_net
+        restart: always
+networks:
+    cf_net:
+        driver: bridge

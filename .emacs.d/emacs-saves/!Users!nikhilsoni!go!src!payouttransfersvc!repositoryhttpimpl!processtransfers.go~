@@ -1,0 +1,42 @@
+package repositoryhttpimpl
+
+import (
+	"log"
+	"time"
+)
+
+type BlockedTransfer struct {
+	Info      *models.RequestTransfer
+	WaitingCh *WaitingCh
+}
+
+func ProcessTransfersWorker(singleCh chan _httpRepo.BlockedTransfer) {
+}
+
+func readChannel(newChannel chan int) {
+
+	ticker := time.Tick(5000 * time.Millisecond)
+	s := make([]int, 0)
+	for {
+		select {
+		// Got a tick, we should check on Something
+		case <-ticker:
+			callBankService(s)
+			log.Println("this part")
+			s = s[:0]
+		case x := <-newChannel:
+			s = append(s, x)
+			if len(s) == 5 {
+				callBankService(s)
+				s = s[:0]
+			}
+		default:
+			//nothing to do here
+		}
+	}
+
+}
+
+func callBankService(arr []int) {
+	log.Println(arr)
+}

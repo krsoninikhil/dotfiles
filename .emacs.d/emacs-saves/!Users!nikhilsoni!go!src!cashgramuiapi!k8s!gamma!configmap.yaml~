@@ -1,0 +1,23 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cashgramuiapi
+  namespace: cashgramuiapi
+data:
+  config.yml: |
+    debug: false
+    server:
+      address: ":9009"
+    context:
+      timeout: 30
+    svchost:
+      cashgramsvc: "http://cashgramsvc.cashgramsvc"
+      payoutmerchantsvc: "http://payoutmerchantsvc.payoutmerchantsvc"
+    cachehost:
+      memcache: "cashfree-memcached.db:11211"
+      orderconfigttl: 60
+    apiconstants:
+      prefix: "http://cashfree.com/billpay/order"
+    logging:
+      logtimeformat: "2006-01-02 15:04:05"
+      loglevel: -1

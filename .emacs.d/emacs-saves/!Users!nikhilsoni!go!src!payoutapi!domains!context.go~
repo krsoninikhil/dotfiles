@@ -1,0 +1,14 @@
+package domains
+
+import (
+	"context"
+	"log"
+)
+
+type contextKey string
+
+func getValue(c context.Context, k string) string {
+	log.Println(c.Value(contextKey(k))) // doesn't work
+	//return c.Value(contextKey(k)).(string)
+	return "1"
+}

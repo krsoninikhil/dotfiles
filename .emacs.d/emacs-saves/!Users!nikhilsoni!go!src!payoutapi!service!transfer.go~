@@ -1,0 +1,11 @@
+package service
+
+import (
+	"context"
+	"payoutapi/domains"
+)
+
+type Transfer interface {
+	Create(context.Context, *domains.RequestTransferRequest) (domains.PayoutResponse, error)
+	Show(context.Context, *domains.RequestTransferRequest) (domains.PayoutResponse, error)
+}

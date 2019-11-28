@@ -1,0 +1,22 @@
+<?php
+   $stage = getenv("CFStage");
+   if ($stage == "PROD") {
+     $configDir  = "/cfroot/etc/prod";
+   } else if ($stage == "MASTER") {
+     $configDir  = "/cfroot/etc/master";
+   } else {
+     $stage = "DEVO";
+     $configDir  = "/cfroot/etc/devo";
+   }
+   define('COMMON', $_SERVER['DOCUMENT_ROOT']."/core");
+   define('ROOT', $_SERVER['DOCUMENT_ROOT']."/payoutinternal");
+   define('PAYOUTCORE', $_SERVER['DOCUMENT_ROOT']."/payoutcore");
+   define('STAGE', $stage);
+   $GEN_CONFIG = parse_ini_file($configDir."/cfseller.ini");
+   $CRED_CONFIG = parse_ini_file($configDir."/cfcreds.ini");
+   $BANK_CONFIG = parse_ini_file($configDir."/bankcreds.ini");
+   $PAYOUT_CONFIG = parse_ini_file($configDir."/payoutconf.ini");
+   $CONFIG = array_merge_recursive($GEN_CONFIG, $CRED_CONFIG, $BANK_CONFIG, $PAYOUT_CONFIG);
+   include_once(ROOT."/internal/db/dbUtil.inc.php");
+  //  include_once(ROOT."/internal/db/mongoDbUtil.inc.php");
+?>

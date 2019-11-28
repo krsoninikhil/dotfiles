@@ -1,0 +1,31 @@
+// Package swagger Payout API
+//
+// Provides Payout APIs to be used by Cashfree merchants. Response is
+// returned with 200 HTTP status code and success response body as:
+// ```javascript
+// {"status": "SUCCESS", "subCode": "200", "message": "Success message", "data": "optional"}
+// ```
+// In case of error, response body is:
+// ```javascript
+// {"status": "ERROR", "subCode": "409", "message": "Error message"}
+// ```
+// `subCode` is proper HTTP response code. `data` field in success
+// responseis optional and if present, will contain the request data.
+//
+// Terms Of Service: https://www.cashfree.com/tnc
+//
+//     Schemes: https, http
+//     Host: localhost
+//     BasePath: /payout/v1
+//     Version: 0.0.1
+//     License: Cashfree Inc. https://www.cashfree.com/tnc
+//     Contact: Cashfree Tech Team <tech@cashfree.com> https://www.cashfree.com
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+// swagger:meta
+package swagger

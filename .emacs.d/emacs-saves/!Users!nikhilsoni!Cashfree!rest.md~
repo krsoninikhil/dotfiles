@@ -1,0 +1,204 @@
+# variables
+
+:host = http://localhost
+:test = https://payout-gamma.cashfree.com
+:headers = <<
+Content-Type: application/json
+X-Account-Id: 1
+#
+:transferId := (random 100000000)
+:ctjson = <<
+Content-Type: application/json
+#
+:appId = MTA2OTkyMDE1ODE0NDIyNTExNjYjIz
+:secretKey = 63ca0b83c8ca85d73fff9c3fd29a7c87e292fd63
+:clientId = 1767db6a36529ee4a3f75971
+:clientSecret = 5ecc35827bf7d57202aa35ae1dbcd3532b247494
+:cfsign = rZsiy9M8xFNRbxb0sftLuGsFZrREubZQ+mJQ8RPEA7X2OIGLGE1Ivnl9sOtnK8XK9vDAhT+uaam0W1aOyTBl6CEKs/Lt74iyO8Oc1LNz8gg6gMCzzth7mDWZZ2Y+e6Y/bkDHCisIJXjkundx0FuTmkOAJKkS42I9qY8cNKLAwFzdQC0Uc5DZhToUQCexVPdfGg74HSAFjcdcsy0ojambL3D7/b+j9bHrZN2kIo/yfRcKvZWgbsarhU7THR/5S6FNSEoI99+qvR0dNA6w/wSVj+88vZ5jQX2hYuOXr1OkTljgjjTSgS+AqoMcmGfMQpniUHjqRMP+xDq1qutclwoW8A==
+:token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDbGllbnRJRCI6IjE3NjdkYjZhMzY1MjllZTRhM2Y3NTk3MSIsIkFjY291bnRJRCI6MSwiU2lnbmF0dXJlQ2hlY2siOmZhbHNlLCJJUCI6IjEyNy4wLjAuMSIsImV4cCI6MTU2MzgwMTE3NSwiaWF0IjoxNTYzNzk3NTc1fQ.YE7wgzgfmYKsYKObTWYdM7QqGj7Xps5vi5krxUZdbL4
+
+# payoutinternal cashgram
+POST :host/payoutinternal/v1/cashgrams/
+:headers
+
+{"cashgramId": :transferId,"amount": "1" , "customerName": "john doe","customerEmail": "nikhil@gocashfree.com", "customerPhone": "9758334169","linkExpiryTime" : "2019/09/08" ,"remarks" :"This is a testing site for people of earth","notifyCustomer" : 0}
+
+# payoutinternal transfer
+POST :host/payoutinternal/v1/transfers
+:headers
+
+
+{"transferId": :transferId, "beneId": "bene101", "amount": 3, "transferMode": "upi"}
+
+# payoutservice
+PATCH :host/payoutinternal/v1/transfers/6163
+X-Account-Id: 1
+:ctjson
+
+{"bankReferenceNo": "123", "bankRef": "456", "amount": "3", "bankStatus": "REJECTED", "processedOn": "2018-12-13 16:23:32", "bankId": "6"}
+
+# payoutservice cashgram transfer
+POST :host/payoutservice/service/v1/initiatePayoutTransfer
+
+{"cfCashgramId": "3403", "phoneNumber": "9999999999", "transferMode": "paytm", "fullName": "Nikhil", "mobile": "9999999999"}
+
+# payoutservice transfer status
+POST :host/payoutservice/service/v1/getTransferStatus
+
+{"cfTransferId": "563"}
+
+# payout authorize
+POST :host/payout/v1/authorize
+X-Client-Id: :clientId
+X-Client-Secret: :clientSecret
+
+# payoutinternal add bene
+POST :host/payoutinternal/v1/beneficiaries
+X-Account-Id: 1
+Content-Type: application/json
+
+{"beneId": "bene101", "cardNo": "4444440000001111", "bankAccount": "026291800001191", "ifsc": "YESB0000262", "name": "nikhil", "phone": "9999999999", "vpa": "success@upi", "email": "nikhil@cashfree.com"}
+
+# payoutinternal add bene
+GET :host/payoutinternal/v1/beneficiaries/go_new1
+X-Account-Id: 1
+
+# payout risk
+GET :host:8080/risk/1?cf_bene_id=7&amount=9&is_new_bene=0
+
+# Testing New Stack
+GET :host:8080/ping?name=Cashfree
+# Axis Payouts
+POST https://qah2h.axisbank.co.in/RESTAdapter/AxisBank/Pasfar/Pay
+Authorization: Basic Y29ycHVzZXI6YXhpc2NvcnBjb24xIQ==
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMA5/S6IS1ouA/AQgAjLYwyh/VGFCGFIlxo54ahBP+bShVVXVP+FPX51GtJZVD
+AdJWtZWcAHUG4KNLfFkarjKUbyoAfj9+1dmOmUfXQ5PsV4umnVbpkRgEJiCkmsmk
+/7rXFza7SCppE3RvfMPSKMAZcHx3jm4eLvFDRCle1kLTYviVRE/3bxaUu6APjkx0
+5lkFL3m7APkWhzv+9O0lHVq7AabQvyucjLkbxW8hMJvmvpyG22QzRT6k7cKZfMTj
+vr1cJPLUpgxDPOK1xcahpc30ztdvoSEcGjQRb3T3COjCAzbQhOCj8Zxwgc6YYkbQ
+lAwFb0l52s71eKEl+oqOMmldEWFrm/nmNw3KDzTPD8kaPpQlFwnR8Wwm1BmQ6rXm
+fwjwuSCsX3NYV/o=
+=klol
+-----END PGP MESSAGE-----
+
+# test payout merchant authorize
+POST :test/payout/v1/authorize
+X-Client-Id: CF1008XAQSC5M9TPUQIAM
+X-Client-Secret: 919f278e22360a6340d5316fb3fe88f4737d9580
+X-Forwarded-For: 2.2.2.2
+
+# test payout merchant add beneficiaries
+POST :test/payout/v1/addBeneficiary
+Authorization: Bearer nG9JCN4MzUIJiOicGbhJCLiQ1VKJiOiAXe0Jye.m39BDN0YDO0UTN1EjOiAHelJCLiMzMuczNuETNuYDMxIiOiAXaiwCM6IyajVGaDVmc1RXYudWazJCLwQDO1gDN1UTNxojI0FWaiwiIyYTSFJzUBpFMWZlRQljNyIzMGNkI6ICZJRnbllGbjJye.Grd0GQB-Nlu8g2rm_qG3RyEYFYXyZjL766NIhea3OxyaVQYdWCZ3fL9pFoenMpElAw
+
+{"beneId": "one4", "name": "test 1", "phone": "9999999999", "vpa": "failure@upi", "email": "nikhil@cashfree.com", "address1": "bangalore"}
+
+# test payout merchant transfer
+POST :test/payout/v1/requestTransfer
+Authorization: Bearer nG9JCN4MzUIJiOicGbhJCLiQ1VKJiOiAXe0Jye.m39BDN0YDO0UTN1EjOiAHelJCLiMzMuczNuETNuYDMxIiOiAXaiwCM6IyajVGaDVmc1RXYudWazJCLwQDO1gDN1UTNxojI0FWaiwiIyYTSFJzUBpFMWZlRQljNyIzMGNkI6ICZJRnbllGbjJye.Grd0GQB-Nlu8g2rm_qG3RyEYFYXyZjL766NIhea3OxyaVQYdWCZ3fL9pFoenMpElAw
+
+{"beneId": "one4", "amount": 5, "transferId": "12_13", "transferMode": "upi"}
+
+# test payout transfer status
+GET :test/payout/v1/getTransferStatus?referenceId=35478
+Authorization: Bearer yq9JCN4MzUIJiOicGbhJCLiQ1VKJiOiAXe0Jye.QJ9RDO4UTM0UTN1EjOiAHelJCLiMzMuczNuETNuYDMxIiOiAXaiwCM6IyajVGaDVmc1RXYudWazJCL0gjM1EDN1UTNxojI0FWaiwiIyYTSFJzUBpFMWZlRQljNyIzMGNkI6ICZJRnbllGbjJye.pq2f-6A0C3t2Vtjs_QgPsNst-gjBrUqcMbXVifaR-ZCrC07QO0vZWey3awA2VJEqy9
+
+# test payout verify token
+POST :test/payout/v1/verifyToken
+Authorization: Bearer Bm9JCN4MzUIJiOicGbhJCLiQ1VKJiOiAXe0Jye.2w9RTN2ITN3UTN1EjOiAHelJCLiMzMuczNuETNuYDMxIiOiAXaiwCM6IyajVGaDVmc1RXYudWazJCL0UDMyUzN1UTNxojI0FWaiwiIyYTSFJzUBpFMWZlRQljNyIzMGNkI6ICZJRnbllGbjJye.jJ-u3nqpvSvcjeydTeBdNFVqKQnTGyWfCn6J1dSTXDP67Tlzv7-yVmzfseRt9hsWT6
+
+# test push
+POST :host/push/v1/payout/callback/axis
+
+-----BEGIN PGP MESSAGE-----
+Version: BCPG v1.46
+
+hQELA/Fx7cXv00SxAQf4rL7Y797osQwFA1gU5+mI+hofY1VPAyU0Y/3gNqnpcAsA
+qLgW7HcCU3pj5srB18LiBn4yD4mH3QyF3hSiqFVV4dffvzCJ8CxTyBXdw0dJvOca
+58abZ7Sk4d/4uFe+da7AuDPUprHpb4V1ufBwNTdW+gOsFFQu2uHBcCx6hQfAhzeO
+u9An2lsNRDkb3HC88WNC8AjmrpvRsLE1PKlTAr8PT5zGsnvMC5x65eul2FoQO6k+
+5gKa7rt0AboN7qruB0Sq565R8d8xOhRkjW+cSAcHwvCMUMA3RkUF8efRA3gWH3Ua
+A05XXUcfHGYnC7+w7bXyMGlG4Wdw5aMppn+xATIv0sJaAYtZs6SPv9e8HeJfIfQI
+i5gvK4PQYRS/uaK18OYiMHZd1d+oDQcVqKMjcv1Yk+72s3M5jrsg9oq+YHSSnr/e
+pEya3wIJ2msDT7O0DbfmJeKIzrkG0fg1iP+NoBFExpUkI6jQUjXIikrXpgrxG9q6
+8BEd5e1T71WhMIcvFU4qGSYBr+yqr5x0Ygeqv6kWF5/cNuw4g+fOYxMgXfduJVFb
+eEbtQHODOGdhJ3ld0psiXX3o76xo5YkgpHx9JsUOARXXGkExkL9WOZs16DdIGlU8
+RkB5UKj5jmJF5UvRTXvExGN0U63+RaVkxBctqRUqEtOJCG4tfK4OL5HZo/aV0UZK
+0iAlXb8MsSWepwqAqJVMxQ9rD9TMsCWu4m8wWUW2dSnRAbcNs4AFgSeO2UXFjdas
+ASscbxiFnB8uGoLltU4iyYINOUQOQaN5jtSbLL57A/7lE97I2mSBZ5Z6OO5xpkiQ
+CX/4onDhRS01RJwYJKOhfGrj/xKThcjWjz0ubQpm83ItAYRyiwdYWo6L7s7+mQVe
+4IZyJkjH+RD8qitrH/iK42D7s6cJ8KbM8265aRvGmWE1mj/JdAA+KeL09j9RqH1d
+q2Cm76Gyg0eccwH/Mn7bdqC+DwOWeJVWnS3UuRViKkx3yeir9BJvBj2+RaxlimZt
+jSB7C2erPVTtCIMVdT/B9FjV0YFz9XkmLU6myuecEtmTaputmjkyyHH8qTYtPO1o
+Y9n6iJD44WK9zyrEz8erT3f7rr3y1tby8YU3yWFvfYbx26XWEBfsDlG0LHiRRyF3
+KnDlRVfjZnu6KioSWURC8E80iKa2LV3x6AGP+4z1oj/Q5oH1znfTzFweWqpWc9fe
+POs4jlAM9vOBJw/EDV2ofiqj802HfcNAbSAhnFG18NblCl23aer02nkIy+6tJB4N
+tH4Lwyw9OrHVd5Tx54toTWDqkvDnmuhgnYAtwra8RD2yFbwce4CuzxbYFKhjOyeb
+I7C6r2pBHa85egMM/1VQBmAryWcRs2o+JkjMdc5h90Qy/Xe2Z7ccrE0n0isEM6ub
+BiQGMERnVhQsFmQ=
+=Xk2K
+-----END PGP MESSAGE-----
+
+# yap push
+POST https://sit-secure.yappay.in/Yappay/direct/push
+Content-Type: application/json
+Tenant: YBCCPAY
+Authorization: Basic YWRtaW46YWRtaW4=
+
+{"fromEntityId": "CASHFREE", "toEntityId": "MVISAMER", "productId" : "GENERAL", "description": "bill payment", "amount": 100.00, "recipientPan": "4434260000000008", "recipientName": "Muthukumar a", "txnType": "CCFUND", "business": "CASHFREE", "transactionOrigin": "MOBILE", "externalTransactionId": :transferId, "networkType": "VISA"}
+
+# yap push status check
+GET https://ssltest.yappay.in/Yappay/txn-manager/fetch/150
+Content-Type: application/json
+Tenant: YBCCPAY
+Authorization: Basic YWRtaW46YWRtaW4=
+
+# card service transfer
+POST :host/cardservice/v1/transfers
+Content-Type: application/json
+
+{"requestId": :transferId, "cardNumber": "4434260000000008", "amount": 3, "switch": "YES", "cardType": "CREDIT"}
+
+# card service status check
+GET :host/cardservice/v1/transfers/status?transferId=165
+
+# yap enc transfer
+POST https://ssltest.yappay.in/Yappay/direct/push
+Content-Type: application/json
+Tenant: YBCCPAY
+Authorization: Basic YWRtaW46YWRtaW4=
+
+{"token":"XajucoGjMFs0sZt7jPz15X7HrOqpuZ6jddYTyMRoUCA3lr0kdF75eS3IMkNhvUwjkz0TvZYvrXhNulhwRmayi3biM7Cnq61v3OgA8sMnhMTvHA0ZjzBZb8MZpcwzNOdhME2Aa\\/n2GOpQM2B8ygc1dYVw2gwoa8b\\/wXWg6TA0TCgqBxv0C0R5wMBbrQ3zGhQUnAdKh3Nelx9ViJ6DO\\/RgYfjbbli6ROeOziF+T8PC3lK\\/wl9xGZ9CcJ6MVtfp6dYGVcmKqIoRdSvKq8BctwMcNM9OxONqSreysllnD9KD\\/r0MvxfZeZFtsI4RSN3tb14EOuvP9wKmvYOPmNfFraJzLg==","body":"ko4x0s\\/O0OqUs7tiV7r8o606mKNq09TiNfDtKdQzKaFc+JludnXouq\\/b5JtGW88ZytIxrGCjGVzWlFdhwCW3ELevAfyRutJbqS9cv7Crmy1LY629y9lwJGS55dZdR4iLj69SfbqmlvssB8eV0q75cs61hWRuxIFH1WqdcNS2Ahh9XOi0C5D3l\\/EZ6IOJUAkPK9jIyzfxMFs5PxMlKqb26EXvRXnYmRsO9F3K38yw8ALvLPAFifuIp5FxDuVUzffBkgWfun3Mp\\/nrafiM8lScYWnPrZXzid30KpUl2mzatHBRxFbjRhT6nD+METFQK\\/VTwajRKQHuGvvCX9\\/N2mFUAIBJy\\/VzGyws\\/TkWWJhQ6NKRMZuohUB1+rJBO3n\\/2iih86vEMCknb+Fy7+Ba2Z2PEQ==","key":"Hb93uWrCfmQLXkOeYHjKGQQOJAE6GDLmUxgZ8Ru0SjHYA7DY4OmarbSC+WS3ZRl5q6zM8FTK\\/GWhsqMjki0WBupnzmqK+hJgehANU5JITqXwAYGcc0fzWmSKzlIF4pwFEdeGXJfrNxWuavk2i4esFYMFOixkhxUeN0KUyx9C6ris\\/I\\/G2IkMiSi5w7Qek82nkNkOC9yWqkgx0GX1TNlllQvhbAb+tqwGEGfLgslAo9rrIWHQi8zXjsTK1C+9lcofyoq\\/42A4q1IMmdyWOdKrGLm7lcXWl0dgDN0D5po75ZnpsdOT29sIbVRJjYtovzmQG2coCEZwXzAzDoDusY9RcQ==","entity":"BBBfhROVpXb8knuD1LeECMsJZZnALwHHNZj+yTVeRSAF1bVAgQNe8rHGKNGeWFEmf8kIkuGxxgcRDPOob7WizZQW1oOFm96xH9oCK0UV\\/KnpBy+NRnyVArDYMPkEMn\\/gPPji8xatHqjj26gL1ASxjFwUyE9RV2B8JwGChyHpYdozmskwO3ApqDKfhKPdLpRtagJByXAX\\/iH6W4CYxuUqqHZOB70RjwiLG+YYRQ28+e6YsRhmJCA+8iAQObY7A+0sd\\/fXzwLv1J5DcTQqobmJzU\\/IUkVp5OL2kyjVy18kmdIO0T+e2z7q7KBy04oCnSVQw00+uo1kSGiqxWyw7dHfkQ==","refNo":"b26b326636447e7c"}
+
+# pg refund
+POST :host/api/v1/order/refund
+
+appId=:appId&secretKey=:secretKey&orderId=4019r&referenceId=4881&refundAmount=1&refundNote=Sample%20Refund%20note&refundType=INSTANT&customerPhone=9999999999&mode=BANK_TRANSFER&accountNo=026291800001191&ifsc=YESB0000262&merchantRefundId=23
+
+# pg create order
+POST :host/api/v1/order/create
+
+appId=:appId&secretKey=:secretKey&orderId=xBasilxTestx1&orderAmount=154&orderNote=Subscription&customerName=Test%20Name&customerPhone=9999999999&customerEmail=basil%40cashfree.com&sellerPhone=&returnUrl=https%3A%2F%2Fexample.com%2Freturn&notifyUrl=https%3A%2F%2Fexample.com%2Fnotify&paymentModes=&pc=
+
+# TPS Mocks
+POST :host:8080/bankservice?bank=B
+# TPS transfer service
+POST http://localhost:9003/payout/v1/transfers
+:ctjson
+
+{"accountId": "1", "beneId": "2", "transferId": "12", "transferMode": "banktransfer", "remarks": "testing TPS", "amount": 21.1}
+# Revamp Payout Auth
+#POST http://localhost:9001/auth
+POST https://test-k8s.cashfree.com/payoutmerchantauthsvc/auth
+X-Cf-Signature: :cfsign
+:ctjson
+
+{"clientId": "CF1008XAQSC5M9TPUQIAM", "clientSecret": "919f278e22360a6340d5316fb3fe88f4737d9580"}
+
+# Revamp Payout Auth Verify
+#GET http://localhost:9001/verify
+GET https://test-k8s.cashfree.com/payoutmerchantauthsvc/verify
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDbGllbnRJRCI6IjE3NjdkYjZhMzY1MjllZTRhM2Y3NTk3MSIsIkFjY291bnRJRCI6MSwiU2lnbmF0dXJlQ2hlY2siOmZhbHNlLCJJUCI6Ijo6MSIsImV4cCI6MTU2MjA2ODgyOCwiaWF0IjoxNTYyMDY4MjI4fQ.-spmFoW21d6_QCVO3hHgEznlBlib-Sg7y5tlgj04es8

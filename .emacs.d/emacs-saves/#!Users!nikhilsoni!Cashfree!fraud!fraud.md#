@@ -1,0 +1,99 @@
+# Possible solutions
+
+- Pretrained (may be daily updated) multivariate gaussian distribution model for anomaly detection - merchant wise
+- Time series - merchant wise
+- Time serise for Cashfree with all merchant-id as one hot encoded feature
+- Autoencoders
+- Autoencoders with time series
+
+# Rule based
+
+- 3rd quartile transfer amount to new bene (first day) for the account.
+  - Consider benes added in last 7 days
+- 3rd quantile transfer amount to new bene across accounts for new account
+  - 3rd quantile of all point from above point
+- 3rd quantile transfer amount to given bene for older bene
+  - 3rd quantile over last 7 days
+- 3rd quantile transfer amount on given day of week for the account
+  - 3rd quantile over last 30 days
+  - Ignore this for new accounts (active for less than 30 days)
+x 3rd quantile transfer amount on given hour of the day for the account
+
+- no. of transactions per day
+- usual timing of transactions
+- no. of bene added per day
+- avg. transfer to per bene per day
+
+# Required data
+
+x cfTransferId
+- Time (Added On)
+- Amount
+- Account ID
+- BeneId
+- cfBankId
+- time difference since bene is added, beneAge
+
+# Possible additional features
+
+v amount
+v time
+v accountId
+v Age of Bene
+x first txn to given bene or not
+x Ratio of transfers to new bene and old bene
+- time difference since last txn (if not using time series)
+- time difference since last txn to given bene (what about first txn?)
+v time difference since last txn from given account
+- amount of last txn from same account
+- merchant account age
+- merchant trust score
+- txTime lies in usual txn time confidance interval (based on periodic mean, vonmises [6]) for the bene [5]
+- avg txAmount for bene last week
+v today's txn no
+v today's txn no for given bene
+v isBankTransfer
+v isUPI
+v amount difference from last txn to same bene
+
+# Anomaly Detection:
+
+x Gausian Distribution and Multivariate Gausian Distribution
+- k-means clustring based
+- Autoencoders [9]
+
+# Time series:
+
+- STL Decomposition [1] [8]
+x Twitter's Anomaly Detector (STL implementation) - requires single feature
+- HTM - online [3], [4]
+v matrixprofile-ts [7]
+x Regression based detector: ARIMA
+- LSTM - RNN [2] (outperformed by Transformers i.e. attension based models
+  in 2017 and Casual CNN)
+- Transformers
+- PCA
+- LSTM Autoencoders
+
+# Prediction based technique like Markovian
+
+# notes
+
+- a cron to update txTime confidance interval daily
+
+# References
+
+- Outlier book by Charu Aggarwal: http://charuaggarwal.net/outlierbook.pdf
+- Andrew Ng's Lecture on Anomaly Detection
+- https://scikit-learn.org/stable/modules/outlier_detection.html
+- https://scikit-learn.org/stable/auto_examples/covariance/plot_mahalanobis_distances.html#sphx-glr-auto-examples-covariance-plot-mahalanobis-distances-py
+[1] https://towardsdatascience.com/the-fall-of-rnn-lstm-2d1594c74ce0
+[2] https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2015-56.pdf [LSTM Networks for Anomaly Detection in Time Series]
+[3] https://www.sciencedirect.com/science/article/pii/S0925231217309864?via%3Dihub
+[4] https://github.com/numenta/nupic
+[5] https://www.researchgate.net/publication/289585253_Feature_Engineering_Strategies_for_Credit_Card_Fraud_Detection#pf9
+[6] https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.vonmises.html
+[7] https://github.com/target/matrixprofile-ts/blob/master/docs/Matrix_Profile_Tutorial.ipynb
+[8] https://www.analyticsvidhya.com/blog/2016/02/time-series-forecasting-codes-python/
+[9] https://medium.com/@curiousily/credit-card-fraud-detection-using-autoencoders-in-keras-tensorflow-for-hackers-part-vii-20e0c85301bd
+[10] https://forums.fast.ai/t/forecasting-and-anomaly-detection-from-streaming-time-series-online-learning/4057/2

@@ -1,0 +1,21 @@
+package models
+
+type ErrorResponse struct {
+	message string
+}
+
+type AddBeneResponse struct {
+	Message string
+}
+
+type CreateGroupResponse struct {
+	Message string
+}
+
+type GetBeneResponse struct{}
+
+type GetBeneInfoResponse struct{}
+
+type GetBeneIdResponse struct{}
+
+type RemoveBeneResponse struct{}

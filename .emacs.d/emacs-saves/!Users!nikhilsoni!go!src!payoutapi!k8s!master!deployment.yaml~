@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgapi
+  namespace: pgapi
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: pgapi
+      version: v1.0.0
+  template:
+    metadata:  
+      labels:
+        app: pgapi
+        version: v1.0.0
+    spec:
+      imagePullSecrets:
+        - name: regsecret
+      containers:
+        - name: pgapi
+          image: docker-registry.cashfree.com/pgapi:latest
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config 
+          env: 
+            - name: PGAPISERVICECONF
+              value: /config/config.yml
+          resources:
+            limits:
+              memory: ".5Gi"
+              cpu: "700m"
+            requests:
+              memory: "256Mi"
+              cpu: "350m"
+          ports:
+            - name: app
+              containerPort: 9005
+      volumes:
+        - name: config-volume
+          configMap:
+            name: pgapi

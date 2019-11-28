@@ -1,0 +1,4 @@
+// MerchantPrefs defines the response from preferences call to Merchant repo
+type MerchantPrefs struct {
+	CheckIP bool
+}

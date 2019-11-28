@@ -1,0 +1,20 @@
+swagger: "2.0"
+info:
+  title: 'Payout API'
+  version: '0.0.1'
+  description: Provides Payout APIs to be used by Cashfree merchants.
+  contact:
+    name: Cashfree Tech
+    email: tech@cashfree.com
+    url: https://www.cashfree.com
+schemes:
+  - https
+basePath: /payout/v1
+paths:
+  /getBalance:
+    get:
+      operationId: 'getBalance'
+      responses:
+        200:
+          description: 'returns the balance of merchant account'
+          $ref: "#/response/domains.PayoutResponse"

@@ -1,0 +1,51 @@
+<?php
+
+require_once(ROOT."/v1/util/soapUtil.inc.php");
+require_once(ROOT."/v1/util/curlUtil.inc.php");
+
+class AxisSoapHandler {
+
+    private $host;
+
+    public function __construct() {
+        global $CONFIG;
+        $token = $CONFIG["axisBankTransferPush"]["loginToken"];
+        $user = $_SERVER['PHP_AUTH_USER'];
+        $pass = $_SERVER['PHP_AUTH_PW'];
+        // Throw SOAP fault for invalid username and password combo
+        $data = $user."--".$pass;
+        $hash = hash_hmac('sha256', $data, $pass, false);
+
+        if ($hash != $token) {
+            error_log("AXIS_BANK_TRANSFER_PUSH_ERROR: Login failed");
+            throw new SOAPFault("Sender:E001", "Wrong login/password provided.");
+        }
+        $this->host = $CONFIG["payout"]["payoutservice"];
+    }
+
+    function bankTransferPush($requestObj) {
+        $requestParams = (array) $requestObj;
+        $validStatus = SoapUtil::checkAxisBankTransferPushParams($requestParams);
+        error_log("CF_INFO :: PUSH :: BANK_TRANSFER :: AXIS :: Request dump: ". json_encode($requestParams));
+        if ($validStatus["status"] == 0) {
+            $message = $validStatus["message"];
+            error_log("ECOLLECT_ERROR: Request request failed $message ". json_encode($requestParams));
+            throw new SOAPFault("Sender:E003", $validStatus["message"]);
+        }
+
+        $params = array(
+            "bankReferenceNo" => $requestParams["TRANSACTION_UTR_NO"],
+            "cfTransferId" => $requestParams["CLIENT_BATCH_NO"],
+            "bankRef" => $requestParams["BANK_REFERENCE_NUMBER"],
+            "amount" => $requestParams["amount"],
+            "bankStatus" => $requestParams["STATUS_CODE"],
+            "processedOn" => $requestParams["TRANSACTION_VALUE_DATE"],
+            "bankId" => "6",
+        );
+        $response = CurlUtil::post($params, $this->host."/updateByPush", $headers);
+        return $response["message"];
+    }
+
+}
+
+?>

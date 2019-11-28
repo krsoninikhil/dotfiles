@@ -1,0 +1,19 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cfutilservice
+  namespace: cfutilservice
+data:
+  config.yml: |
+    debug: false
+    stage: "DEVO"
+    port: "9188"
+    timeout: 30
+    svcbase:
+      auth: "http://payoutmerchantauthsvc.payoutmerchantauthsvc"
+      beneficiary: "http://payoutbenesvc.payoutbenesvc"
+      transfer: "http://payouttransfersvc.payouttransfersvc"
+      cashgram: "http://cashgramsvc.cashgramsvc"
+      account: "http://payoutmerchantsvc.payoutmerchantsvc"
+      bankvalidation: "http://bankvalidationsvc.bankvalidationsvc"
+      cache: "cashfree-memcache.db:11211"

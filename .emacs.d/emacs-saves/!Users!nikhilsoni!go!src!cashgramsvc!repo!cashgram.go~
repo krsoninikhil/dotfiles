@@ -1,0 +1,10 @@
+package repo
+
+import "context"
+
+// Cashgram defines interface for repository
+type Cashgram interface {
+	Create(ctx context.Context, p models.CreateRequest) (models.CreateCashgramIntResponse, error)
+	ShowStatus(ctx context.Context, p models.ShowStatusRequest) (models.ShowStatusCashgramIntResponse, error)
+	Destroy(ctx context.Context, p models.DestroyRequest) (models.DestroyCashgramIntResponse, error)
+}

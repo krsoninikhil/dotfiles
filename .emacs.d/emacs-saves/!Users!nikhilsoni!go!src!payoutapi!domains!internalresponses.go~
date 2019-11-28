@@ -1,0 +1,15 @@
+package domains
+
+type CreateResponse struct {
+	ID      int
+	Message string
+}
+
+type DeleteResponse struct {
+	ID      int
+	Message string
+}
+
+// resource specific
+type ShowBeneIntResponse struct {
+}

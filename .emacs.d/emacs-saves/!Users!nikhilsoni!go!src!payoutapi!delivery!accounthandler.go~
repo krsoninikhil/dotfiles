@@ -1,0 +1,24 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> April, 2019
+ */
+
+package delivery
+
+import "github.com/labstack/echo"
+
+func ConfigureAccountHandler(e *echo.Echo, acs service.Account) {
+	handler := &accountHandler{accountSvc: acs}
+	addAccountHandlerV1(e, handler)
+}
+
+type accountHandler struct {
+	accountSvc service.Account
+}
+
+func addAccountHandlerV1(e *echo.Echo, h *accountHandler) {
+}

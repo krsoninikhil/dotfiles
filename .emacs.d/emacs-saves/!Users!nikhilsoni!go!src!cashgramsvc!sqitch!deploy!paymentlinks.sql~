@@ -1,0 +1,7 @@
+-- Deploy cashgramsvc:paymentlinks to mysql
+
+BEGIN;
+
+-- XXX Add DDLs here.
+
+COMMIT;

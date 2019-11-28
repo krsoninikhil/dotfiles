@@ -1,0 +1,21 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cashgramsvc
+  namespace: cashgramsvc
+data:
+  config.yml: |
+    debug: false
+    port: "9188"
+    timeout: 30
+    linkbase: "http://test-k8s.cashfree.com/cashgramwebapp/cashgram/redeem"
+    database:
+      host: "cashfree-mysql.db"
+      port: 3306
+      name: "cfsellers"
+    svcbase:
+      shortlink: "http://urlshortenersvc.urlshortenersvc"
+      beneficiary: "http://payoutbenesvc.payoutbenesvc"
+      transfer: "http://payouttransfersvc.payouttransfersvc"
+      account: "http://payoutmerchantsvc.payoutmerchantsvc"
+      cache: "cashfree-memcache.db:11211"

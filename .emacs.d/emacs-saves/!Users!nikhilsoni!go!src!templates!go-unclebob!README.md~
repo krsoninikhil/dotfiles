@@ -1,0 +1,36 @@
+** go-unclebob
+
+This directory contains the template for creating a new service in
+Golang along with a script to automate the generation.
+
+** Setup
+
+- Clone the repository and move this directory i.e. `go-unclebob` to
+  your `$GOPATH/src`
+- Change directory to `go-unclebob` and run:
+```bash
+$ go build main.go -o gobp  # gobp for go boilerplate
+```
+
+** Usage
+
+- Create new app using:
+```bash
+$ ./gobp app -n appname
+```
+Run `dep ensure` to download dependencies.
+
+- Create new resource in all layers of a app:
+```bash
+$ ./gobp resource -n resourcename -a appname
+```
+
+- Create a new function/action in a particular resource:
+```bash
+$ ./gobp action -n functionname -r resourcename -a appname
+```
+
+** TODO
+
+- Create action based on HTTP methods
+- Accept actions list while creating resource itself

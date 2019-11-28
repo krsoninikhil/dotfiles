@@ -1,0 +1,188 @@
+#:payout = http://localhost:9188/payout/v1
+:payout = https://payout-gamma.cashfree.com/payout/v1
+#:payout = https://prod.cashfree.com/payout/v1
+:gamma = https://gamma.cashfree.com/cashgramuiapi-gamma
+:secretKey = 63ca0b83c8ca85d73fff9c3fd29a7c87e292fd63
+# local
+:clientId = CF17ESZ1RK5JNDV2MUU
+:clientSecret = c4dc3362ccf317ba26a8818f1ec3f9d51d58c629
+# gamma
+#:clientId = CF1008ILS18Y641YEMY62
+#:clientSecret = b92d871d9e7c7c5fa84a3ae2028846d7574fe17e
+# prod
+#:clientId = CF32DOM6LFGMLT266EA
+#:clientSecret = be7f070457e0fede50fe272ec22396100f768f2c
+# gamma for account 42, merchant 27
+:clientId = CF27DOI4G9ENBXYU6Y2
+:clientSecret = 9dd808a827b72951416bef2ee7574e043248c151
+:cfsign = rZsiy9M8xFNRbxb0sftLuGsFZrREubZQ+mJQ8RPEA7X2OIGLGE1Ivnl9sOtnK8XK9vDAhT+uaam0W1aOyTBl6CEKs/Lt74iyO8Oc1LNz8gg6gMCzzth7mDWZZ2Y+e6Y/bkDHCisIJXjkundx0FuTmkOAJKkS42I9qY8cNKLAwFzdQC0Uc5DZhToUQCexVPdfGg74HSAFjcdcsy0ojambL3D7/b+j9bHrZN2kIo/yfRcKvZWgbsarhU7THR/5S6FNSEoI99+qvR0dNA6w/wSVj+88vZ5jQX2hYuOXr1OkTljgjjTSgS+AqoMcmGfMQpniUHjqRMP+xDq1qutclwoW8A==
+:token = ab9JCVXpkI6ICc5RnIsICN4MzUIJiOicGbhJye.ab0nIIRVVB9VSQFEVV9UWBBlI6IiY1NnIsATM0MTN2EzN1EjOiQXYpJCLwEDM0UjNxcTNxojIwhXZiwiIz4iNz4SM14iNwEjI6ICcpJCLlNHbhZmOis2Ylh2QlJXd0Fmbnl2ciwCNzUTM6ICZJRnb192YjFmIsIiM2kVTFlVM0YTW4EzUMlEOwATMGNkI6ICZJRnbllGbjJye.abALbqpgUgCjaiBc0dsUXNssiNUGOcjRF6RWjCtm5ysT8WKKB3vRCzsjK5YoKm5NY9
+:host = http://localhost
+:cgToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDRklEIjozNDU1LCJQaG9uZSI6Ijk3NTgzMzQxNjkiLCJleHAiOjE1NzA0OTI4MDAsImlhdCI6MTU3MDQ1NjUzNH0.okGG4JA0YV8Twn18KlHttb4w6GLybVY13ZLn_m1pohA
+
+# new transfersvc
+POST :host:9007/v1/accounts/1/transfers
+Content-Type: application/json
+
+{"transferId": "go10", "beneId": "go1", "transferMode": "upi", "amount": 1.0}
+# new cashgramui send otp
+POST :host:9009/v1/cashgram/:cgToken/otp/send
+Content-Type: application/json
+# new cashgramui send otp
+GET :host:9188/v1/cashgram/:cgToken
+Content-Type: application/json
+# new cashgramui verify otp
+POST http://localhost:9009/v1/cashgram/:cgToken/otp/verify
+Content-Type: application/json
+
+{"otp": "111000"}
+
+# new cashgram ui
+POST http://localhost:9009/v1/cashgram/initiate
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjZmlkIjozNDUzLCJleHAiOjE1NjkyODgwMjgsImlhdCI6MTU2OTI0NDgyOCwic3ViIjoiQ0dJbml0aWF0ZVVzZXIifQ.2ZVXLB5UfXGJ1i4jlFE3BrwqJq6XPoeN50A7rvLRINE
+
+{"mode": "paytm", "phone": "9758334169"}
+# new cashgram ui offers
+GET :host:9009/v1/cashgram/offers
+
+# new payout auth
+GET http://localhost:9001/auth
+X-Client-Id: :clientId
+X-Client-Secret: :clientSecret
+X-Forwarded-For: 127.0.0.1
+X-Cf-Signature: aLjgPuvOtJ1UumpGzfAmWDw4hgFbOBY5WXfqco+LQkWmjN0qV0+PkiXMdlJLP2KT/ZpCUDp3jp5T4cJW/roqZUmWRj12p94e3hz7exaRdWTIceUh5vEH22qEr8cKyd++ejS/utG769ECU5CFlvBhxm3G904ZRZLI+18mSkyCBKxUDGf8+aKXPTPQ/qWKo1uegcB8zYwkPWzpI1qnROZVe7qIQMyYuxFi4l7UjcEBhyOsyHy/vsf1LagznkGbgZ7Mp743is0vR4mAK1aEqwzJpCIQv2SrrnZuWs4ROQCd2Y+AAiTfm37x3QTaaLcqgfIV2iuY1pQCfDKvjrAnShzkQw==
+
+# new payout auth verify
+GET http://localhost:9001/verify
+Authorization: Bearer :token
+
+# new payout get balance
+GET :host/payout/v1/getBalance
+Authorization: Bearer :token
+
+# new cashgram create
+POST http://localhost:9188/v1/accounts/1/cashgram
+Content-Type: application/json
+
+{"cashgramId": "newtest17", "amount": 2.1, "name": "nikhil", "email": "nikhil@cashfree.com", "phone": "9758334169", "linkExpiry": "2019/10/27"}
+# new cashgram status
+GET :host:9188/v1/accounts/1/cashgram/newtest16/status
+# new cashgram udpate status
+PATCH :host:9188/v1/cashgram/3456/
+Content-Type: application/json
+
+{"status": "VERIFIED"}
+
+# new payout show cashgram
+GET :host:9188/v1/cashgram/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDRklEIjozNDU3LCJQaG9uZSI6Ijk3NTgzMzQxNjkiLCJleHAiOjE1NzIxMzQ0MDAsImlhdCI6MTU3MTY2MjA4NX0.YW_4qZaLI1bzKw7_7tC7dcm_bgO-RBVqwQPX0GGmNfo/claims
+# new cashgram redeem
+POST :host:9188/v1/cashgram/3457/redeem
+Content-Type: application/json
+
+{"mode": "upi", "vpa": "success@upi"}
+
+# new payout url shortener
+POST http://localhost:9187/v1/short
+Content-Type: application/json
+
+{"link": "http://cashfree.com:9188/blah", "clientId": "cashgram"}
+
+# new cashgram ui show
+POST http://localhost:9009/v1/cashgram/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDRklEIjozNDU3LCJQaG9uZSI6Ijk3NTgzMzQxNjkiLCJleHAiOjE1NzIxMzQ0MDAsImlhdCI6MTU3MTY2MjA4NX0.YW_4qZaLI1bzKw7_7tC7dcm_bgO-RBVqwQPX0GGmNfo/otp/verify
+Content-Type: application/json
+
+{"otp": "111000"}
+
+# new payout auth
+POST :payout/authorize
+X-Client-Id: :clientId
+X-Client-Secret: :clientSecret
+X-Cf-Signature: LlgObpY6vosmdQ+6cLyX7IC+1g5ImOvkN7NHo2SapnqtwRs3IJSR5cteW5g545ISsinsoLNroMniRhO/Xf+5j04yKdh4tTjuGvfvrYQAUDc6w7uPYwy68UbGoAtmEuG0tK2VvPWiEA/fXKbDEc7QZMLRZjUsjsKZoR77k++ShyNApCet1HlucN2nsCkvDYVDY76XWEgyi2tcsgj9r42R5hEAxHr/fZ1TIG0dkQl3R0tDa8XU/2LFP0xsOUCup0Bstyejn0pBZ21MJoPbEdXOiUTUnM76xPEWpn05LycnM0HHCQPXTZReLriN1k0ehTTRc6ejfgFD30zxCWyzsySePg==
+
+# new payout verify token
+POST :payout/verifyToken
+Authorization: Bearer :token
+
+# new payout get balance
+GET :payout/getBalance
+Authorization: Bearer :token
+
+
+# new payout get beneficiaries
+GET http://localhost:9088/payout/v1/getBeneficiaries
+
+# new payout add bene
+POST :payout/addBeneficiary
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"beneId": "go1", "name": "Golum", "phone": "9999999999", "vpa": "success@upi", "email": "nikhil@cashfree.com", "address1": "bangalore", "city": "Bangalore", "pincode": "123123", "state": "Karnataka", "bankAccount": "026291800001191", "ifsc": "YESB0000262"}
+# new payout add bene group
+POST :payout/createGroup
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"group": "bene123", "description": "this is a test group"}
+
+# new payout get bene info
+GET :payout/getBeneficiary/go_new1
+Authorization: Bearer :token
+
+# new payout get bene id
+GET :payout/getBeneId?bankAccount=026291800001191&ifsc=YESB0000262
+Authorization: Bearer :token
+
+# new payout remove bene
+POST :payout/removeBeneficiary
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"beneId": "go_new21"}
+
+# new payout request transfer
+POST :payout/requestTransfer
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"transferId": "1_2112", "amount": 1.3, "beneId": "suneel12"}
+
+# new payout transfer status
+GET :payout/getTransferStatus?transferId=SUNEEL_TEST_7
+Content-Type: application/json
+Authorization: Bearer :token
+
+# new payout get transfer details
+GET :payout/getTransferStatus?referenceId=662
+Authorization: Bearer :token
+
+# new payout create cashgram
+POST :payout/createCashgram
+Content-Type: application/json
+Authorization: Bearer :token
+
+{"cashgramId": "test3","amount": 1.01, "name": "Nikhil Soni","email": "nikhil@gocashfree.com", "phone": "9758334169" ,"remarks" :"This is a testing site for people of earth","notifyCustomer": 1}
+
+# new payout get cashgram status
+GET :payout/getCashgramStatus?cashgramId=CASH002
+Authorization: Bearer :token
+
+# new payout deactivate cashgram
+POST :payout/deactivateCashgram
+Authorization: Bearer :token
+
+{"cashgramId": "GROUP001"}
+
+# new payout bank details validation
+GET :payout/validation/bankDetails?name=Sameera&phone=9876543210&bankAccount=1234567890&ifsc=HDFC0000549
+Authorization: Bearer :token
+
+# new payout bulk bank validation
+POST :payout/bulkValidation/bankDetails
+Authorization: Bearer :token
+
+{"bulkValidationId":"testid19", "entries":[{ "name":"Sameera Cashfree", "bankAccount":"000890289871772", "ifsc":"SCBL0036078", "phone":"9015991882"},{ "name":"Cashfree Sameera", "bankAccount":"0001001289877623", "ifsc":"SBIN0008752", "phone":"9023991882"}]}
+
+# new payout bulk bank validation status check
+GET :payout/getBulkValidationStatus?bulkValidationId=testid19234&bankAccount=000890289871772&ifsc=SCBL0036078
+Authorization: Bearer :token

@@ -1,0 +1,29 @@
+package serviceimpl
+
+import "github.com/labstack/echo"
+
+type Bene struct{}
+
+func (b *BeneSvc) Create(c echo.Context, params delivery.AddBeneRequest) delivery.AddBeneResponse {
+	return delivery.AddBeneResponse{message: "New bene created!"}
+}
+
+func (b *BeneSvc) CreateGroup(c echo.Context, params delivery.CreateGroupRequest) delivery.CreateGroupResponse {
+	return delivery.CreateGroupResponse{message: "New bene group create!"}
+}
+
+func (b *BeneSvc) ShowAll(c echo.Context, params delivery.GetBenesRequest) delivery.GetBenesResponse {
+	return delivery.GetBenesResponse{message: "No beneficiary found!"}
+}
+
+func (b *BeneSvc) Show(c echo.Context, params delivery.GetBeneInfoRequest) delivery.GetBeneInfoResponse {
+	return delivery.GetBeneInfoResponse{message: "Beneficiary not found!"}
+}
+
+func (b *BeneSvc) GetBeneId(c echo.Context, params delivery.GetBeneIdRequest) delivery.GetBeneIdResponse {
+	return delivery.GetBeneIdResponse{message: "beneId not found!"}
+}
+
+func (b *BeneSvc) Destroy(c echo.Context, params delivery.RemoveBeneRequest) delivery.RemoveBeneResponse {
+	return delivery.RemoveBeneResponse{message: "Beneficiary removed!"}
+}

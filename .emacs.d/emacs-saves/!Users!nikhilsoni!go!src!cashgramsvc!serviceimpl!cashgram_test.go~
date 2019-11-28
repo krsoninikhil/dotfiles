@@ -1,0 +1,12 @@
+package serviceimpl
+
+import (
+	"cashgramsvc/models"
+	"context"
+	"testing"
+)
+
+func TestShowStatus(t *testing.T) {
+	reqHeader := models.RequestHeaders{XRequestID: "test-show-status"}
+	ctx := context.WithValue(c.Request().Context(), models.ContextKey(models.RequestHeadKey), reqHeader)
+}

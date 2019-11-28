@@ -1,0 +1,26 @@
+import datetime
+import numpy as np
+
+
+def get_active_accounts(cur):
+    q = 'select id from MPAConfig where isActive = 1'
+    cur.execute(q)
+    result = cur.fetchall()
+    return result
+
+def get_recent_benes(cur, account_id, days, upper_bound):
+    pass
+
+def get_bene_transfers(cur, bene, duration_h):
+    pass
+
+def new_bene_amount(cur, account_id):
+    last_night = time.strftime('%Y-%m-%d 00:00:00')
+    new_benes = get_recent_benes(cur, account_id, 1, last_night)
+    amount_data = np.array([])
+    for new_bene in new_benes:
+        transfers = get_bene_transfers(cur, new_bene, 24)
+        first_day_amount = [transfer['amount'] for transfer in transfers]
+        amount_data = np.append(amount_data, first_day_amount)
+
+    return np.percentile(amount_data, 75)

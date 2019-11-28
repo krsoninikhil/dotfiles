@@ -1,0 +1,23 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> April, 2019
+ */
+
+package serviceimpl
+
+type Cashgram struct {
+	CGRepo repo.Cashgram
+}
+
+func (c *Cashgram) Create(ctx context.Context, *domains.CreateCashgramRequest) (*domains.PayoutResponse, error) {
+}
+
+func (c *Cashgram) GetStatus(ctx context.Context, cgID string) (*domains.PayoutResponse, error) {
+}
+
+func (c *Cashgram) Deactivate(ctx context.Context, cgID string) (*domains.PayoutResponse, error) {
+}

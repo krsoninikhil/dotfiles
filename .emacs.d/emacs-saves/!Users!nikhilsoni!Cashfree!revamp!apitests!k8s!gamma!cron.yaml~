@@ -1,0 +1,7 @@
+apiVersion: batch/v1beta1
+king: CronJob
+metadata:
+  name: apitests
+  namespace: apitests
+spec:
+  schedule: "0 0 0 ? * * *"

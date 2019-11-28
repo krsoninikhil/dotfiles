@@ -1,0 +1,14 @@
+package custommiddleware
+
+import (
+	"context"
+
+	"github.com/labstack/echo"
+)
+
+func Auth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		context.WithValue(c, "AccountId", "1") // get AccountId from authapi
+		return next(c)
+	}
+}

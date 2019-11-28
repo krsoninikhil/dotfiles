@@ -1,0 +1,42 @@
+import os
+import sys
+
+from flask_restful import Resource
+from flask_restful import reqparse
+
+from settings import logging, STAGE
+from db_util import DbUtil
+import payouts_risk_mongo_util
+
+
+class PayoutRisk(Resource):
+
+    def get(self, account_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('cf_bene_id', int, required=True, location='args')
+        parser.add_argument('amount', float, required=True, location='args')
+        parser.add_argument('is_new_bene', int, required=True, location='args')
+        parser.add_argument('transfer_id', int, location='args')
+        args = parser.parse_args()
+
+        mongo = DbUtil().get_mongo_connection()
+        stats = payouts_risk_mongo_util.get_data(mongo, account_id, args['cf_bene_id'])
+        logging.info(f'Fetched risk data for request ({args}): {stats}')
+
+        response = {'risk': 0, 'code': None, 'message': 'Not risky'}
+        amount = float(args['amount'])
+        if bool(int(args['is_new_bene'])) and stats.get('NEW_BENE_AMOUNT') and amount > stats['NEW_BENE_AMOUNT']:
+            response['code'] = 'NEW_BENE_AMOUNT'
+            response['message'] = 'Amount is more than usual to new beneficiary'
+
+        elif stats.get('TRUSTED_BENE_AMOUNT') and amount > stats.get('TRUSTED_BENE_AMOUNT'):
+            response['code'] = 'TRUSTED_BENE_AMOUNT'
+            response['message'] = 'Amount is more than usual for given beneficiary'
+
+        elif not stats.get('NEW_BENE_AMOUNT') and stats.get('NEW_ACCOUNT_AMOUNT') and amount > stats['NEW_ACCOUNT_AMOUNT']:
+            response['code'] = 'NEW_ACCOUNT_AMOUNT'
+            response['message'] = 'Amount is more than usual for a new account'
+
+        response['risk'] = 0 if response['code'] is None else 1
+        logging.info(f'Response for transfer ({args.get("transfer_id")}): {response}')
+        return response

@@ -1,0 +1,137 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ * Description: Merchant authentication service implementation of AuthService
+ * interface.
+ *
+ * Author: Harsha <harsha@cashfree.com>, March, 2019
+ */
+
+package serviceimpl
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"payoutmerchantauthsvc/cache"
+	"payoutmerchantauthsvc/models"
+	"payoutmerchantauthsvc/repository"
+
+	jwt "github.com/dgrijalva/jwt-go"
+)
+
+// Claims defines the values embedded in auth JWT token
+type Claims struct {
+	ClientID       string
+	AccountID      int
+	IssuedAt       int64
+	SignatureCheck bool
+	IP             string
+	Expiry         int64
+	jwt.StandardClaims
+}
+
+// Auth implements authentication service
+type Auth struct {
+	AuthRepo       repository.Repository
+	AuthCache      cache.AuthCache
+	ContextTimeout time.Duration
+}
+
+// Authenticate returns auth token using account creds
+func (as *Auth) Authenticate(c context.Context, p *models.AuthInput, rp *models.RequestParam) (*models.AuthResponse, error) {
+	log.Println("Authenticate::request received at Authentication service(internal)")
+	ctx, cancel := context.WithTimeout(c, as.ContextTimeout)
+	defer cancel()
+
+	key := as.AuthCache.GetKey(p.ClientID, p.ClientSecret)
+	resp, err := as.AuthCache.Get(key)
+	if err != nil {
+		log.Println("Authenticate cache miss,", err)
+		log.Println("Trying with DB")
+		account, err := as.AuthRepo.Authenticate(ctx, p)
+		if err != nil {
+			log.Println("Authenticate error:", err)
+			return nil, models.ErrInvalidCreds
+		}
+
+		if !isValidAccountType(account.Channel) && account.AccountID != 0 {
+			return nil, models.ErrInvalidToken
+		}
+
+		shouldCheckIP := as.AuthRepo
+
+		signCheck := false
+		issuedAt := time.Now().Unix()
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+			ClientID:       p.ClientID,
+			AccountID:      account.AccountID,
+			IssuedAt:       issuedAt,
+			SignatureCheck: signCheck,
+			IP:             rp.IP,
+			Expiry:         issuedAt + 10*60,
+		})
+		tokenString, err := token.SignedString(key)
+		if err != nil {
+			log.Println("Error signing token", err)
+			return nil, models.ErrInternalServerError
+		}
+
+		resp = &models.AuthResponse{1, tokenString}
+		if err = as.AuthCache.Set(key, *resp); err != nil {
+			log.Println("Error setting auth cache", err)
+		}
+	}
+	return resp, nil
+}
+
+// Verify verifies auth token and returns accountId
+func (as *Auth) Verify(c context.Context, p *models.RequestParam) (*models.VerifyResponse, error) {
+	ctx, cancel := context.WithTimeout(c, as.ContextTimeout)
+	defer cancel()
+
+	claims, err := getTokenClaims(p.Token, p.Key)
+	if err != nil {
+		return nil, models.ErrInvalidToken
+	}
+
+	account, err := as.AuthRepo.AccountDetails(claims.ClientID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isValidAccountType(account.Channel) && account.AccountID != 0 {
+		return nil, models.ErrInvalidToken
+	}
+
+	if claims.SignatureCheck || as.AuthRepo.IsWhiteListedIP(ctx, account, p.IP) {
+		return nil, nil
+	}
+	return nil, models.ErrUnknownIP
+}
+
+func isValidAccountType(acType string) bool {
+	switch acType {
+	case "PAYOUT_CURRENT", "PAYOUT_NODAL", "CONNECTED_BANK":
+		return true
+	default:
+		return false
+	}
+}
+
+func getTokenClaims(token string, key string) (*Claims, error) {
+	jwtToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(key), nil
+	})
+
+	if claims, ok := jwtToken.Claims.(*Claims); ok && jwtToken.Valid {
+		fmt.Printf("%v %v", claims, claims.StandardClaims)
+		return claims, nil
+	}
+	fmt.Println(err)
+	return nil, err
+}

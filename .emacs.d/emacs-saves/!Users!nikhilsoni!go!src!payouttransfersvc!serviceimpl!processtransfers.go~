@@ -1,0 +1,74 @@
+package repositoryhttpimpl
+
+import (
+	"log"
+	"payouttransfersvc/models"
+	"time"
+)
+
+var availableGateways = [...]string{
+	"AXIS_CURRENT",
+	"YES_NODAL",
+} // this should come from some central place
+
+type transferResult struct {
+	isSuccess bool
+}
+
+// BlockedTransfer defines the values that are required by the worker processing transfers
+type BlockedTransfer struct {
+	Info      *models.TransferRequest
+	WaitingCh chan transferResult
+}
+
+// TransferGatewayChs defines all the channels from where worker should pick up the transfers
+type TransferGatewayChs struct {
+	RealTime map[string]chan BlockedTransfer
+	Bulk     map[string]chan BlockedTransfer
+}
+
+// InitProcessTransfers initializes the data structures required to process the transfers
+func InitProcessTransfers() *TransferGatewayChs {
+	gwChs := &TransferGatewayChs{
+		RealTime: map[string](chan BlockedTransfer){},
+		Bulk:     map[string](chan BlockedTransfer){},
+	}
+
+	for _, gw := range availableGateways {
+		gwChs.RealTime[gw] = make(chan BlockedTransfer)
+		gwChs.Bulk[gw] = make(chan BlockedTransfer)
+	}
+	return gwChs
+}
+
+// ProcessTransfers is worker which start other workers correspoding to the requested transfers
+func ProcessTransfers(singleCh chan BlockedTransfer) {
+}
+
+func readChannel(newChannel chan int) {
+
+	ticker := time.Tick(5000 * time.Millisecond)
+	s := make([]int, 0)
+	for {
+		select {
+		// Got a tick, we should check on Something
+		case <-ticker:
+			callBankService(s)
+			log.Println("this part")
+			s = s[:0]
+		case x := <-newChannel:
+			s = append(s, x)
+			if len(s) == 5 {
+				callBankService(s)
+				s = s[:0]
+			}
+		default:
+			//nothing to do here
+		}
+	}
+
+}
+
+func callBankService(arr []int) {
+	log.Println(arr)
+}

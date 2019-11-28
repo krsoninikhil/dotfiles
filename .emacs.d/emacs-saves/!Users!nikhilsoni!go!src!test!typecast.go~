@@ -1,0 +1,23 @@
+package main
+
+import "fmt"
+
+type a struct {
+	x string
+	y interface{}
+}
+
+type b struct {
+	x string
+	y string
+}
+
+func main() {
+	a1 := a{x: "foo", y: "bar"}
+	b1 := b(a)
+	fmt.Printf("original: %+v; type casted: %+v", a1, b1)
+
+	b2 := b{x: "foo", y: "bar"}
+	a2 := a(b)
+	fmt.Printf("original: %+v; type casted: %+v", b2, a2)
+}

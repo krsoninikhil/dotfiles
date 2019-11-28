@@ -1,0 +1,51 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> April, 2019
+ */
+
+package validator
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+)
+
+// ValidationError is used if data is valid but binding fails.
+type ValidationError struct {
+	Msg string
+}
+
+// BadDataError is used if data is malformatted and cannot be understood.
+type BadDataError struct {
+	*ValidationError
+}
+
+func (e *ValidationError) Error() string {
+	return e.Msg
+}
+
+// BindValidation binds the given JSON stream to the underlying type passed
+// as interface. Error messages returned are end user friendly.
+//
+// Ref: https://github.com/labstack/echo/blob/38772c686c76b501f94bd6cd5b77f5842e93b559/bind.go#L45
+func BindValidation(body io.ReadCloser, i interface{}) error {
+	if err := json.NewDecoder(body).Decode(i); err != nil {
+		switch jsonError := err.(type) {
+		case *json.UnmarshalTypeError:
+			err = &ValidationError{
+				Msg: fmt.Sprintf("%s should be %s not %s", jsonError.Field, jsonError.Type, jsonError.Value),
+			}
+		default: // *json.SyntaxError:
+			err = &BadDataError{ValidationError: &ValidationError{
+				Msg: fmt.Sprintf("Post data is empty or not a valid JSON"),
+			}}
+		}
+		return err
+	}
+	return nil
+}

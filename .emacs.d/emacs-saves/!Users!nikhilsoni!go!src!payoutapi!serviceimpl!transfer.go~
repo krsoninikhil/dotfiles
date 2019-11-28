@@ -1,0 +1,8 @@
+package serviceimpl
+
+import "net/http"
+
+type Transfer struct {
+	Client          http.Client
+	TransferSvcBase string
+}

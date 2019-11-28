@@ -1,0 +1,4 @@
+// pub fn init_idt() {
+//     let idt = InterruptDescriptorTable::new();
+//     idt.breakpoint.set_handler_fn(breakpoint_handler);
+//     idt.load();

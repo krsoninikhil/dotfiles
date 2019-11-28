@@ -1,0 +1,48 @@
+<?php
+
+require_once(ROOT."/v1/controller/BaseController.inc.php");
+require_once(PAYOUTCORE."/controller/MPABeneficiaryController.inc.php");
+
+class RiskController extends BaseController {
+
+    public static function calculate($f3) {
+        $beneId = $f3->get('PARAMS.beneId');
+        $accountId = $f3->get("accountId");
+        $dbHandle = DbUtil::getHandle();
+        $bene = array("beneId" => $beneId, "accountId" => $accountId);
+        $beneResponse = MPABeneficiariesDbUtil::getMerchantBeneficiaryDetails($dbHandle, $bene);
+        if ($beneResponse) {
+            $f3->status(200);
+            $response = array(
+                "status" => 1,
+                "beneId" => $beneId,
+                "beneDetails" => $beneResponse
+            );
+            PayoutInternalUtil::outputResponse($f3, $response);
+        } else {
+            PayoutInternalUtil::sendResourceNotFoundResponse($f3, array("name" => "beneficiary", "value" => $beneId));
+        }
+    }
+
+    private static function validateNewRequest($request) {
+        if (!isset($request["cfBeneId"])) {
+            return "cfBeneId is required!";
+        }
+
+        if (!isset($request["accountId"])) {
+            return "accountId is required!";
+        }
+
+        if (!isset($request["amount"])) {
+            return "amount is required!";
+        }
+
+        if (!isset($request["txTime"])) {
+            return "txTime is required!";
+        }
+
+    }
+}
+
+
+?>

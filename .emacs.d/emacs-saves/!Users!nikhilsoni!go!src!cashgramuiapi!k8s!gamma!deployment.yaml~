@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cashgramuiapi
+  namespace: cashgramuiapi
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: 
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: cashgramuiapi
+      version: v1.0.0
+  template:
+    metadata:  
+      labels:
+        app: cashgramuiapi
+        version: v1.0.0
+        deploymentId: {{DEPLOYMENT_ID}}
+    spec:
+      imagePullSecrets:
+        - name: regsecret
+      containers:
+        - name: cashgramuiapi
+          image: docker-registry.cashfree.com/cashgramuiapi:latest
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config 
+          env: 
+            - name: CASHGRAMUIAPICONF
+              value: /config/config.yml
+          resources:
+            limits:
+              memory: ".5Gi"
+              cpu: "700m"
+            requests:
+              memory: "256Mi"
+              cpu: "350m"
+          ports:
+            - name: app
+              containerPort: 9005
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cashgramuiapi

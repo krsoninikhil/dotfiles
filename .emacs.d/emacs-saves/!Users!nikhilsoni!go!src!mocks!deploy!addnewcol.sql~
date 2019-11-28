@@ -1,0 +1,7 @@
+-- Deploy proj:addnewcol to mysql
+
+BEGIN;
+
+-- XXX Add DDLs here.
+
+COMMIT;

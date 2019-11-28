@@ -1,0 +1,52 @@
+<?php
+
+ class SignatureUtil
+ {
+ 	public static function isValidSignature($dbHandle, $signature, $clientId, $accountId) {
+
+ 	  // Retrieve corresponding certificate path for accountId
+ 	  $filepath = "/usr/local/crt/accountId_".$accountId."_private_key.pem";
+
+ 	  if (file_exists($filepath)) {
+	 	$privateKey = openssl_pkey_get_private(file_get_contents($filepath));
+	 	$decryptedData = static::decrypt_RSA($signature, $privateKey);
+
+	 	if($decryptedData) {
+	 	  $data = explode(".", $decryptedData);
+	 	  $retrievedTimestamp = array_pop($data);
+	 	  $retrievedClientId = implode(".", $data);
+
+	 	  if($retrievedClientId && $retrievedTimestamp && ($retrievedClientId == $clientId)) {
+	 	    $timestamp = $retrievedTimestamp;
+	 	    if ($timestamp != "" && ((string)(int) $timestamp === $timestamp)) {
+	 	    	return (($timestamp > strtotime("-5 minutes")) && ($timestamp < strtotime("+2 minutes")));
+	 	    }
+	 	  }
+	 	}
+ 	  }
+ 	  return FALSE;
+ 	}
+
+ 	private static function decrypt_RSA($encryptedData, $privateKey) {
+	  if (openssl_private_decrypt(base64_decode($encryptedData), $decryptedData, $privateKey, OPENSSL_PKCS1_OAEP_PADDING))
+ 	  	return $decryptedData;
+ 	  else return NULL;
+ 	}
+
+ 	public static function getSignatureMockData1 ($clientId) {
+
+ 	  $publicKey = openssl_pkey_get_public(file_get_contents("/var/www/html/payout_test_public_key.pem"));
+ 	  $encodedData = $clientId.".".strtotime("now");
+ 	  $encryptedData =  encrypt_RSA($encodedData, $publicKey);
+ 	  return $encryptedData;
+ 	}
+
+ 	private static function encrypt_RSA($plainData, $publicKey) {
+	  if (openssl_public_encrypt($plainData, $encrypted, $publicKey, OPENSSL_PKCS1_OAEP_PADDING))
+ 	  	$encryptedData = base64_encode($encrypted);
+ 	  else return NULL;
+ 	  return $encryptedData;
+ 	}
+
+ }
+?>

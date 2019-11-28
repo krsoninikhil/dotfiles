@@ -1,0 +1,31 @@
+package models
+
+type ParseError struct {
+	AppError
+}
+
+type ValidationError struct {
+	AppError
+}
+
+type NotFoundError struct {
+	AppError
+}
+
+type AlreadyExistError struct {
+	AppError
+}
+
+type ServerError struct {
+	AppError
+}
+
+// AppError implements error interface and can be used to define custom error types
+type AppError struct {
+	Msg string
+}
+
+// Error returns the error message
+func (a AppError) Error() string {
+	return a.Msg
+}

@@ -1,0 +1,29 @@
+package validator
+
+import (
+	"regexp"
+
+	validator "gopkg.in/go-playground/validator.v9"
+)
+
+type customValidator struct {
+	validator *validator.Validate
+}
+
+// Validate is used to do the final validation
+func (cv *customValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
+}
+
+// InitValidator adds custom rules to validator package
+func InitValidator() *customValidator {
+	v := validator.New()
+	v.RegisterValidation("alphaspace", isAlphaSpace)
+	return &customValidator{validator: v}
+}
+
+// isAphaSpace checks if field includes only aphabets and space
+func isAphaSpace(f validator.FieldLevel) bool {
+	rule := regexp.MustCompile(`^[a-zA-Z\s]+$`).MatchString
+	return rule(f.Field().String())
+}

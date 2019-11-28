@@ -1,0 +1,10 @@
+<?php
+
+class PayoutsRiskMongoUtil {
+
+    public static function getData($mongoHandle, $accountId, $cfBeneId, $date=null) {
+
+    }
+}
+
+?>

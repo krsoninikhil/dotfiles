@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urlshortenersvc-gamma
+  namespace: urlshortenersvc-gamma
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: urlshortenersvc-gamma
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: urlshortenersvc-gamma
+        version: v1.0.0
+    spec:
+      imagePullSecrets:
+        - name: regsecret
+      containers:
+        - name: urlshortenersvc-gamma
+          image: docker-registry.cashfree.com/urlshortenersvc:0.0.1.4
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+          env:
+            - name: URLSHORTENERSVC_CONFIG
+              value: /config/config.yml
+            - name: BITLY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: urlshortenersvc-gamma
+                  key: bitly.token
+          resources:
+            limits:
+              memory: ".5Gi"
+              cpu: "700m"
+            requests:
+              memory: "256Mi"
+              cpu: "350m"
+          ports:
+            - name: app
+              containerPort: 9188
+      volumes:
+        - name: config-volume
+          configMap:
+            name: urlshortenersvc-gamma

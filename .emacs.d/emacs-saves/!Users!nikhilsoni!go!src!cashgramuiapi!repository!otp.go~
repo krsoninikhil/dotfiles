@@ -1,0 +1,8 @@
+package repository
+
+import "context"
+
+type OTP interface {
+	SaveOTP(ctx context.Context, phone string) error
+	GetOTP(ctx context.Context, token string) (string, error)
+}

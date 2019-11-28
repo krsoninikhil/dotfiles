@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: vaultsvc
+  namespace: vaultsvc
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+  - host: test-k8s.cashfree.com
+    http:
+      paths:
+      - path: /vaultsvc/?(.*)
+        backend:
+          serviceName: vaultsvc
+          servicePort: 80

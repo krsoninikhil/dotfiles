@@ -1,0 +1,13 @@
+package repoimplhttp
+
+import (
+	"net/http"
+	"time"
+)
+
+func Init() http.Client {
+	to, _ := time.ParseDuration("30s")
+	client := &http.Client{Timeout: to}
+}
+
+func Get(uri string)

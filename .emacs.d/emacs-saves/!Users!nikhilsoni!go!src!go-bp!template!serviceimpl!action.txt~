@@ -1,0 +1,3 @@
+func (r *{{RES_NAME$}}) {{$ACTION$}}(ctx context.Context, p models.{{$ACTION$}}Request) (models.Response, error) {
+	return nil, nil
+}

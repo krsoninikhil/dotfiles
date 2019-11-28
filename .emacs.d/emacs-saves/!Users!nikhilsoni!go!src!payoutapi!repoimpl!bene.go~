@@ -1,0 +1,9 @@
+package repoimplhttp
+
+type Bene interface {
+	Create()
+	CreateGroup()
+	Show()
+	GetBeneID()
+	Destroy()
+}

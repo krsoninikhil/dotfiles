@@ -1,0 +1,4 @@
+## phil-opp-rust-os
+
+A proof of concept Operating System in Rust. This is the result of following [blog
+series by Philipp Oppermann]() step by step

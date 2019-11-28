@@ -1,0 +1,26 @@
+package serviceimpl
+
+import (
+	"cashgramsvc/repo"
+	"context"
+)
+
+// Cashgram implements interface for Cashgram service
+type Cashgram struct {
+	CashgramRepo repo.Cashgram
+}
+
+// Create ...
+func (r *Cashgram) Create(ctx context.Context, p models.CreateRequest) (models.Response, error) {
+	return nil, nil
+}
+
+// Showstatus ...
+func (r *Cashgram) ShowStatus(ctx context.Context, p models.ShowStatusRequest) (models.Response, error) {
+	return nil, nil
+}
+
+// Destroy ...
+func (r *Cashgram) Destroy(ctx context.Context, p models.DestroyRequest) (models.Response, error) {
+	return nil, nil
+}

@@ -1,0 +1,39 @@
+package delivery
+
+import "github.com/labstack/echo"
+
+type CashgramHandler struct {
+}
+
+func ConfigureCashgramHandler(e *echo.Echo) {
+	handler = CashgramHandler{}
+	handler.addHandlers(e)
+}
+
+func (ch *CashgramHandler) addHandlers(e *echo.Echo) {
+	e.GET("api/v1/cashgram", ch.getAll)
+	e.POST("api/v1/cashgram", ch.create)
+	e.GET("api/v1/cashgram/:id", ch.getDetails)
+	e.GET("api/v1/cashgram/:id/status", ch.getStatus)
+	e.PUT("api/v1/cashgram/:id/status", ch.updateStatus)
+}
+
+func (ch *CashgramHandler) getAll(e *echo.Echo) {
+
+}
+
+func (ch *CashgramHandler) create(e *echo.Echo) {
+
+}
+
+func (ch *CashgramHandler) getDetails(e *echo.Echo) {
+
+}
+
+func (ch *CashgramHandler) getStatus(e *echo.Echo) {
+
+}
+
+func (ch *CashgramHandler) updateStatus(e *echo.Echo) {
+
+}

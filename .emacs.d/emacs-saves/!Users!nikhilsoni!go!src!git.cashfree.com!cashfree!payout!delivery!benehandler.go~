@@ -1,0 +1,22 @@
+package delivery
+
+func ConfigureBeneHandler(e *echo.Echo) (err error) {
+	handler := &beneHandler{
+		beneSvc: service.BeneSvc{}
+	}
+	addHandlersV1(e, handler)
+}
+
+func addHandlersV1(e *echo.Echo, handler *beneHandler) {
+	urlPrefix := "/payout/v1"
+	e.POST(urlPrefix + "/addBeneficiary", handler.createBene)
+	e.POST(urlPrefix + "/createGroup", handler.createGroup)
+	e.GET(urlPrefix + "/getBeneficiaries", handler.showAllBenes)
+	e.GET(urlPrefix + "/getBeneficiaries/:beneId", handler.showBene)
+}
+
+type beneHandler struct {
+	beneSvc service.BeneSvc
+}
+
+	func (bh *beneHandler)

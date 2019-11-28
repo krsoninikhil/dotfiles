@@ -1,0 +1,30 @@
+<?php 
+
+    require_once("vendor/autoload.php");
+    require_once("../globals.inc.php");
+
+    require_once(ROOT."/v1/util/PayoutInternalUtil.inc.php");
+    require_once(ROOT."/v1/controller/BeneController.inc.php");
+    require_once(ROOT."/v1/controller/TransferController.inc.php");
+    require_once(ROOT."/v1/controller/CashgramController.inc.php");
+
+    $f3 = Base::instance();
+
+    $f3->set("ONERROR", function($f3) {
+        error_log("CF_FATAL :: PAYOUT_INTERNAL :: ERROR");
+        PayoutInternalUtil::sendUnknownErrorResponse($f3, $f3->get('ERROR.text'));
+    });
+
+    $f3->route("GET|POST /", "BaseController::getApiResponse");
+
+    $f3->route("POST /beneficiaries", "BeneController::addNew");
+    $f3->route("GET /beneficiaries/@beneId", "BeneController::find");
+
+    $f3->route("POST /cashgrams", "CashgramController::addNew");
+    $f3->route("GET /cashgrams/@cashgramId/status", "CashgramController::getStatus");
+
+    $f3->route("POST /transfers", "TransferController::addNew");
+    $f3->route("GET /transfers/@transferId/status", "TransferController::getStatus");
+
+    $f3->run();
+?>

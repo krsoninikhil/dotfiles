@@ -1,0 +1,53 @@
+package delivery
+
+func validateRequest(c *echo.Echo, i interface{}) (err error) {
+	if err = c.Bind(i); err {
+		return err
+	}
+
+	if err = c.Validate(i); err {
+		return err
+	}
+}
+
+type AddBeneRequest struct {
+	BeneId      string `json:"beneId" validate:"required,alphanum,max=50"`
+	Group       string `json:"group" validate:"max=50"`
+	Name        string `json:"name" validate:"required,alpha,max=100"`
+	Email       string `json:"email" validate:"required,email,max=200"`
+	Phone       string `json:"phone" validate:"required,numeric,max=11"`
+	BankAccount string `json:"bankAccount" validate:"alphanum,max=40"`
+	IFSC        string `json:"ifsc" validate:"alphanum,max=50"`
+	VPA         string `json:"vpa" validate:"max=100"`
+	CardNo      string `json:"cardNo" validate:"numeric,max=50"`
+	Address1    string `json:"address1" validate:"required,max=150"`
+	Address2    string `json:"address2" validate:"max=150"`
+	City        string `json:"address2" validate:"alpha,max=50"`
+	State       string `json:"address2" validate:"alpha,max=50"`
+	Pincode     string `json:"pincode" validate:"max=6"`
+}
+
+type CreateGroupRequest struct {
+	Group       string `json:"group" validate:"required,max=50"`
+	Description string `json:"description" validate:"max=50"`
+}
+
+type GetBenesRequest struct {
+}
+
+type GetBeneInfoRequest struct {
+}
+
+type GetBeneIdRequest struct {
+}
+
+type RemoveBeneRequest struct {
+}
+
+type GetBalanceRequest struct{}
+
+type RequestTransferRequest struct{}
+
+type GetTransferStatusRequest struct{}
+
+type GetTransfersRequest struct{}

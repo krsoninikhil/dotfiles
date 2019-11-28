@@ -1,0 +1,92 @@
+#:payoutk8s = https://test-k8s.cashfree.com/payoutapi/payout/v1
+:payoutk8s = https://gamma.cashfree.com/payout/v1
+#:payoutk8s = https://prod.cashfree.com/payout/v1
+:benek8s = https://gamma.cashfree.com/payoutbenesvc
+:k8s = https://test-k8s.cashfree.com
+:gamma = https://gamma.cashfree.com
+# change suf to "-gamma/v1" for gamma testing
+:suf = /v1
+:authk8s = Authorization: Bearer ab9JCVXpkI6ICc5RnIsICN4MzUIJiOicGbhJye.ab0nIIRVVB9VSQFEVV9UWBBlI6IiY1NnIsYDO4ETMzEzN1EjOiQXYpJCL2gDNyEzMxcTNxojIwhXZiwiI2IjMuATOx4CO54CNxIiOiAXaiwSZzxWYmpjIrNWZoNUZyVHdh52ZpNnIsEjOiQWS05WdvN2YhJCLikUQ20kQa5kWWNlQVFjTDdjMGNkI6ICZJRnbllGbjJye.abB3Y9f5HM2A78c3DXK1z9FuijzDqDkMC6QRXpQVoCTjZjlhukc99IOe4-OJJHw6SG
+:cgToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDRklEIjo3MDQxLCJQaG9uZSI6Ijk3NTgzMzQxNjkiLCJleHAiOjE1Njk2NTgwODQsImlhdCI6MTU2OTU3MTY4NH0.HdQF9v0uLoJCyRbZFcEc4QrrCnMxzXYZDFVkgKRMVSI
+# new test payout auth
+POST :payoutk8s/authorize
+X-Client-Id: CF27CN1UBSVZNZBM6AI
+X-Client-Secret: 196739f9ddc675496f9bf137c65fce72b7c52e7a
+# new test payout auth verify
+POST :payoutk8s/verifyToken
+:authk8s
+# new test payout transfer request
+POST :payoutk8s/requestTransfer
+Content-Type: application/json
+:authk8s
+
+{"transferId": "1_2", "amount": 1.3, "beneId": "one3"}
+# new test payout bene add
+POST :payoutk8s/addBeneficiary
+Content-Type: application/json
+:authk8s
+
+{"beneId": "go_new1", "name": "Nikhil", "phone": "9758334169", "vpa": "9758334169@upi", "email": "nikhil@cashfree.com", "address1": "bangalore", "city": "Bangalore", "pincode": "123123", "state": "Karnataka"}
+
+# new test payout bene get details
+GET :payoutk8s/getBeneficiary/go_new1
+:authk8s
+
+# new test bene add
+POST :benek8s/v1/accounts/1/beneficiaries
+Content-Type: application/json
+
+{"beneId": "go_new71", "name": "Golum", "phone": "9999999989", "vpa": "success1@upi", "email": "nikhil@cashfree.com", "address1": "bangalore", "city": "Bangalore", "pincode": "123123", "state": "Karnataka"}
+
+# new test bene get details
+GET :benek8s/v1/accounts/1/beneficiaries/go_new
+:authk8s
+
+# new bene remove bene
+DELETE :benek8s/v1/accounts/1/beneficiaries/go_new
+:authk8s
+
+# new notification service
+POST :k8s/notificationservice/v1/sms
+Content-Type: application/json
+
+{"phoneNumber": "9758334169", "template": "cashgram.otp", "data": {"otp": "123"}}
+
+# new payout cashgram
+POST :gamma/cashgramsvc/v1/accounts/1/cashgram
+Content-Type: application/json
+
+{"cashgramId": "newtest3", "amount": 2.1, "name": "nikhil", "email": "nikhil@cashfree.com", "phone": "9758334169"}
+
+# new test show cashgram
+GET :k8s/cashgramsvc/v1/cashgram/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDRklEIjo2OTc0LCJleHAiOjE1NjgyODgyNzYsImlhdCI6MTU2ODIwMTg3Nn0.SPdMrtMnyKmqFcWwiR_oPyqLoCFbLz6uBmaZPpZabPc/phone
+
+# new url shortener
+POST https://gamma.cashfree.com/urlshortenersvc/v1/short
+Content-Type: application/json
+
+{"link": "https://test-k8s.cashgfree.com/urlshortenersvc", "clientId": "cashgram"}
+
+# new cashgramui send otp
+POST :gamma/cashgramuiapi:suf/cashgram/:cgToken/otp/send
+Content-Type: application/json
+# new cashgramui verify otp
+POST :gamma/cashgramuiapi:suf/cashgram/:cgToken/otp/verify
+Content-Type: application/json
+
+{"otp": "111000"}
+# new cashgram ui
+POST :gamma/cashgramuiapi:suf/cashgram/redeem
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjZmlkIjo3MDQxLCJleHAiOjE1Njk1NzQyMDMsImlhdCI6MTU2OTU3MzkwMywic3ViIjoiQ0dJbml0aWF0ZVVzZXIifQ.BGsVn648DhPE0_--OMstWu2CRDMckyzxWjZhEOb2QyE
+
+{"mode": "paytm", "phone": "9758334169"}
+# new cashgram ui offer
+GET :gamma/cashgramuiapi:suf/cashgram/:cgToken/offers
+# new cashgram ui details
+GET :gamma/cashgramuiapi:suf/cashgram/:cgToken
+# new payout transfersvc
+POST :gamma/payouttransfersvc:suf/accounts/1/transfers
+Content-Type: application/json
+
+{"beneId":"JOE_KOTAK_BANK","amount":1,"transferId":"OCT_3_2019_TRY_11","transferMode":"","remarks":""}

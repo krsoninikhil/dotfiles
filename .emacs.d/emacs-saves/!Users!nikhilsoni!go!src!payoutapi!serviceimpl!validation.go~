@@ -1,0 +1,23 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> April, 2019
+ */
+
+package serviceimpl
+
+import (
+	"context"
+	"payoutapi/domains"
+)
+
+type Validation struct {
+	ValidationRepo string
+}
+
+func (v *Validation) BankDetails(ctx context.Context, p *domains.BankDetailsRequest) (*domains.PayoutResponse, error) {
+	return nil, nil
+}

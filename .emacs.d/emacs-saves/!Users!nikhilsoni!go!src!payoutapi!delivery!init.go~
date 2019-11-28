@@ -1,0 +1,15 @@
+package delivery
+
+import (
+	"context"
+
+	"github.com/labstack/echo"
+)
+
+type contextKey string
+
+func initContext(c echo.Context) context.Context {
+	const accountID = contextKey("AccountId")
+	ctx := context.WithValue(c.Request().Context(), accountID, c.Get("AccountId"))
+	return ctx
+}

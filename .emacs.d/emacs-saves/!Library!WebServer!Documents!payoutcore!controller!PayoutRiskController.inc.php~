@@ -1,0 +1,10 @@
+<?php
+
+class PayoutRiskController {
+
+    public static velocityCheck($dbHandle, $mongoHandle, $mcHandle, $cfTransferId, $details) {
+        $accountDailyLimit = static::getAccountDailyLimit($dbHandle
+    }
+}
+
+?>

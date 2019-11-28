@@ -1,0 +1,50 @@
+<?php
+
+require_once(COMMON."/db/AdminDbUtil.inc.php");
+require_once(COMMON."/util/AdminPermUtil.inc.php");
+require_once(PAYOUTCORE."/db/MPAAdminDbUtil.inc.php");
+include_once(COMMON."/controller/MerchantAuthController.inc.php");
+include_once(PAYOUTCORE.'/db/MPAConfigDbUtil.inc.php');
+
+$dbHandle = DbUtil::getHandle();
+
+if (isset($_POST["accountId"])) {
+    $accountId = (int)$_POST["accountId"];
+}
+else {
+    exit();
+}
+
+$dbHandle = DButil::getHandle();
+$title = "Payout Activate IPs";
+
+$merchant = MPAConfigDbUtil::getMerchantIdAndChannelFromAccountId($dbHandle, $accountId);
+AdminPermUtil::checkAndDie($dbHandle, $adminId, "3008", $merchant["merchantId"]);
+
+
+$ips = MerchantAuthIPDbUtil::getAllMerchantWhitelistedIPsPayout($dbHandle, $merchant["merchantId"], $merchant["channel"], $accountId);
+
+?>
+
+<table>
+    <tr>
+        <th>S. No.</th>
+        <th>IP</th>
+        <th>Action</th>
+    </tr>
+    <?php foreach($ips as $i => $ip) { ?>
+        <tr>
+            <th><?php echo ($i+1); ?></th>
+            <th><?php echo $ip["merchantIP"]; ?></th>
+            <th>
+                <?php if (!$ip["isApproved"]) { ?>
+                    <form action="#">
+                    <input type="hidden" name="action" value="activeIP" />
+                    <input type="hidden" name="cfIPId" value="<?php echo $ip["id"]; ?>" />
+                    <button type="submit"> Activate </button>
+                </form>
+            <?php } ?>
+        </th>
+    </tr>
+    <?php } ?>
+</table>

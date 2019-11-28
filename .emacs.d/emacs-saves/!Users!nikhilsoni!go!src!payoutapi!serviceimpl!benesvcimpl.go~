@@ -1,0 +1,33 @@
+package serviceimpl
+
+import (
+	"context"
+
+	"cashfree.com/payoutapi/domains"
+)
+
+type Bene struct{}
+
+func (b *Bene) Create(c context.Context, params domains.AddBeneRequest) (domains.AddBeneResponse, error) {
+	return domains.AddBeneResponse{Message: "New bene created!"}, nil
+}
+
+func (b *Bene) CreateGroup(c context.Context, params domains.CreateGroupRequest) (domains.CreateGroupResponse, error) {
+	return domains.CreateGroupResponse{Message: "New bene group created!"}, nil
+}
+
+// func (b *Bene) ShowAll(c echo.Context, params models.GetBenesRequest) models.GetBenesResponse {
+// 	return models.GetBenesResponse{message: "No beneficiary found!"}
+// }
+
+// func (b *Bene) Show(c echo.Context, params models.GetBeneInfoRequest) models.GetBeneInfoResponse {
+// 	return models.GetBeneInfoResponse{message: "Beneficiary not found!"}
+// }
+
+// func (b *Bene) GetBeneId(c echo.Context, params models.GetBeneIdRequest) models.GetBeneIdResponse {
+// 	return models.GetBeneIdResponse{message: "beneId not found!"}
+// }
+
+// func (b *Bene) Destroy(c echo.Context, params models.RemoveBeneRequest) models.RemoveBeneResponse {
+// 	return models.RemoveBeneResponse{message: "Beneficiary removed!"}
+// }

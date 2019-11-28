@@ -1,0 +1,9 @@
+import gnupg
+
+gpg = gnupg.GPG()
+
+with open('private.pgp', 'rb') as f:
+    key_data = f.read()
+
+with open('/tmp/axis_test.txt', 'rb') as f:
+    key_data = f.read()

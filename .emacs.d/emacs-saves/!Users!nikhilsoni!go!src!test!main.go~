@@ -1,0 +1,59 @@
+package main
+
+import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"time"
+)
+
+func parsePvtKey(pvtKeyPath string) (*rsa.PrivateKey, error) {
+	pvtKey, err := ioutil.ReadFile(pvtKeyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(pvtKey)
+	if block == nil {
+		return nil, errors.New("failed to parse PEM block containing the key")
+	}
+
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return priv, nil
+}
+
+func main() {
+	sign := "qnsYFBbtcz6F58S3stLJPnoJ+1Vt9tAVwSZRM65VNaOzIrRl9iIHv2ZOCgPznSw6KGDOAg7Egbgh4KLClTbsUVLRLjUPWGWAdOhKFxEyfDYHODxK/b8yg2S17AVOkvItXFhyB8XA63PotE/Docwv9z+9g7Viv6O7RhEhgVgZ+awfro3pLajWYd9vYEIMksgjL5NgJxihFXcqx1gojF4z+YgycPHkED8bRtNXBceltMDtjB++1OrzOMArSI3o2OgJWM6eWN9NAMAcCOZlL6mtO3SRrYhORsfZt89asqS/OW1+RIIWEj0f1qcfi2UJ5GEuj2cqcI7fKLZyMlxnJP9yPw=="
+	cipher, err := base64.StdEncoding.DecodeString(sign)
+	log.Println("cipher", cipher, err)
+
+	pvtKey, err := parsePvtKey(fmt.Sprintf("%s/accountId_%d_private_key.pem", "/usr/local/crt", 1))
+	log.Println("pvt key:", pvtKey, err)
+
+	label := []byte("")
+	payload := fmt.Sprintf("1767db6a36529ee4a3f75971.%d", time.Now().Unix())
+	log.Println("payload", payload)
+	message := []byte(payload)
+	cipher2, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, &pvtKey.PublicKey, message, label)
+	cipher2Str := base64.StdEncoding.EncodeToString(cipher2)
+	log.Println("Encrypt", cipher2Str, err)
+
+	plainTextBytes, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, pvtKey, cipher2, label)
+	if err != nil {
+		log.Printf("Error in decrypting sign header %+v\n", err)
+	}
+	plainText := string(plainTextBytes)
+	log.Println("plaintext:", plainText)
+	return
+}

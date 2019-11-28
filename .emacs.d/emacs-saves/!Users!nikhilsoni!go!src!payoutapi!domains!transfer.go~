@@ -1,0 +1,17 @@
+package domains
+
+type RequestTransferRequest struct {
+	BeneID       string  `json:"beneId" validate:"required,max=50"`
+	Amount       float32 `json:"amount" validate:"required,numeric,max=40"`
+	TransferID   string  `json:"transferId" validate:"required,max=40"`
+	TransferMode string  `json:"transferMode" validate:"omitempty,alpha,max=20"`
+	Remarks      string  `json:"remarks" validate:"omitempty,max=70"`
+}
+
+type GetTransferStatusRequest struct {
+	ReferenceID string `json:"referenceId" validate:"omitempty,alphanum"`
+	TransferID  string `json:"transferId" validate:"omitempty,max=40"`
+}
+
+type GetTransfersRequest struct {
+}

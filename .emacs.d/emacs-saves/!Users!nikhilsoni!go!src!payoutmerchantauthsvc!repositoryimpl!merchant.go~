@@ -1,0 +1,19 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ * Description: Merchant details and preferences interface.
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> June, 2019
+ */
+
+package repositoryimpl
+
+import "net/http"
+
+// Merchant implements the interface for merchant details
+type Merchant struct {
+	Client                *http.Client
+	PayoutMerchantSvcBase string
+}

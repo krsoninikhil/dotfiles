@@ -1,0 +1,9 @@
+package models
+
+// BeneProblem is used for error responses
+type CreateBeneProblem struct {
+	Title    string `json:"title"`
+	Details  string `json:"details"`
+	BeneID   string `json:"beneId"`
+	CFBeneID int    `json:"cfBeneId"`
+}

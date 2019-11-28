@@ -1,0 +1,38 @@
+package http
+
+import (
+	"cashgramuiapi/logger"
+	"cashgramuiapi/models"
+	"context"
+	"net/http"
+)
+
+// Notif implements Notif repo interface
+type Notif struct {
+	Client       *Client
+	NotifSvcBase string
+}
+
+// SendSMS call notif service for sending the sms
+func (n *Notif) SendSMS(ctx context.Context, p *models.SMSParams) error {
+	return nil
+	res, err := n.Client.PostJSON(ctx, n.NotifSvcBase+"/v1/sms", nil, &models.SendSMSRequest{
+		Phone:    p.Phone,
+		Template: "cashgram.otp",
+		Data:     map[string]string{"otp": p.OTP},
+	})
+	if err != nil {
+		logger.R.Error("SendSMS: Error calling notificationsvc", logger.Format(ctx, err.Error())...)
+		return &models.RepoError{models.BaseError{models.ErrInternalServerError}}
+	}
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		// is status is ok, we don't need to see the response
+		return nil
+	default:
+		data := &models.Problem{}
+		err = parseResponse(ctx, res, data)
+		return err
+	}
+}

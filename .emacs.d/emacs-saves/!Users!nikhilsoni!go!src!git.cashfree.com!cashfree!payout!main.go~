@@ -1,0 +1,24 @@
+package main
+
+import (
+	"cashgram/config"
+	"fmt"
+
+	validator "gopkg.in/go-playground/validator.v8"
+)
+
+type customValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *customValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
+}
+
+func main() {
+	configFile := "config/config.yml"
+	cfg := config.LoadConfig(configFile)
+	e := echo.New()
+	e.Validator = &customValidator{validator: validator.New()}
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", cfg)))
+}

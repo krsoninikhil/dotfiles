@@ -1,0 +1,93 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ * Description: Define a wrapper on validator package along with customization.
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> April, 2019
+ */
+
+package validator
+
+import (
+	"log"
+	"reflect"
+	"regexp"
+	"strings"
+
+	validator "gopkg.in/go-playground/validator.v9"
+)
+
+// CustomValidator uses third party validator to provide struct field validation
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+// Validate checks the validator package tags.
+//
+// Error messages can be directly exposed to end user. Impelementing
+// Validate method also makes CustomValidator compatible with echo Validator
+// interface
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.validator.Struct(i); err != nil {
+		collector := &errorCollector{}
+		for _, err := range err.(validator.ValidationErrors) {
+			f, t, p := err.Field(), err.Tag(), err.Param()
+			collector.collect(collector.create(f, t, p))
+		}
+		return collector
+	}
+	return nil
+}
+
+// Init adds custom rules to validator package
+func Init() *CustomValidator {
+	v := validator.New()
+
+	// register custom rules
+	handleRegisterValidation(v, "_alphaspace", isAlphaSpace)
+	handleRegisterValidation(v, "_alphanumus", isAlphaNumUS)
+	handleRegisterValidation(v, "_alphanumspace", isAlphaNumSpace)
+	handleRegisterValidation(v, "_vpa", isVPA)
+
+	// use json tag name for errors instead of actual field name
+	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" || name == "" {
+			return "nojsontag"
+		}
+		return name
+	})
+	return &CustomValidator{validator: v}
+}
+
+func handleRegisterValidation(v *validator.Validate, tag string, rule validator.Func) {
+	if err := v.RegisterValidation(tag, rule); err != nil {
+		log.Fatalln("Could not register custom validation rule for", tag)
+	}
+}
+
+// isAlphaSpace checks if field contains only aphabets and space
+func isAlphaSpace(f validator.FieldLevel) bool {
+	rule := regexp.MustCompile(`^[a-zA-Z\s]+$`).MatchString
+	return rule(f.Field().String())
+}
+
+// isAlphaNumUS checks is field contains only alphanum and underscores
+func isAlphaNumUS(f validator.FieldLevel) bool {
+	rule := regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+	return rule(f.Field().String())
+}
+
+// isAlphaNumSpace checks is field contains only alphanum and whitespace
+func isAlphaNumSpace(f validator.FieldLevel) bool {
+	rule := regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString
+	return rule(f.Field().String())
+}
+
+// isVPA checks if field contains only alphanum, dot, underscore or @
+func isVPA(f validator.FieldLevel) bool {
+	rule := regexp.MustCompile(`^[a-zA-Z0-9_.@]+$`).MatchString
+	return rule(f.Field().String())
+}

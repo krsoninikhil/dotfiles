@@ -66,4 +66,10 @@
     (yank)
     (move-to-column col)))
 
+;; https://www.emacswiki.org/emacs/BackwardKillLine
+(defun backward-kill-line (arg)
+  "Kill ARG lines backward."
+  (interactive "p")
+  (kill-line (- 1 arg)))
+
 (provide 'defuns)

@@ -1,0 +1,33 @@
+package db
+
+import (
+	"cashgramuiapi/config"
+	"context"
+	"fmt"
+	"log"
+)
+
+// BankValidation implements DB calls
+type MetaData struct {
+	Client *mongo.Client
+}
+
+// GetMongoConnection gets mongo connection
+func GetDbConnection(cfg config.StartupConfig) (*mongo.Client, error) {
+	connection := fmt.Sprintf("%s://%s:%s", cfg.DbType, cfg.DbHost, cfg.DbPort)
+	clientOptions := options.Client().ApplyURI(connection)
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Ping(context.TODO(), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("Connected to MongoDB!")
+	return client, nil
+}

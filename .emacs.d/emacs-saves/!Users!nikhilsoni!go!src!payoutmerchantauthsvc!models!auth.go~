@@ -1,0 +1,39 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ * Description: Merchant authentication service data models.
+ *
+ * Author: Harsha <harsha@cashfree.com>, March, 2019
+ */
+
+package models
+
+import (
+	"time"
+)
+
+// MerchantKeys is in one-to-one correspondence with the DB table
+type MerchantKeys struct {
+	ID         uint16    //`json:"id"`
+	MerchantID uint16    //`json:"merchantId"`
+	AppID      string    //`json:"appId" validate:"required"`
+	AccessKey  string    //`json:"accessKey" validate:"required"`
+	Active     uint8     //`json:"active"`
+	CreatedAt  time.Time //`json:"created_at"`
+}
+
+// MerchantAuthInput should be input to merchant authentication service
+type MerchantAuthInput struct {
+	AppID     string `json:"appId" validate:"required"`
+	AccessKey string `json:"accessKey" validate:"required"`
+}
+
+// MerchantAuthResponse defines response
+type MerchantAuthResponse struct {
+	MerchantID uint16    `json:"merchantId"`
+	AppID      string    `json:"appId" validate:"required"`
+	Active     uint8     `json:"active"`
+	CreatedAt  time.Time `json:"created_at"`
+}

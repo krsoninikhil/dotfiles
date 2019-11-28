@@ -1,0 +1,25 @@
+$("document").ready(function() {
+
+     $("form.activateIP").submit(function (e){
+	 e.preventDefault();
+	 var data = $(this).serialize();
+	 console.log(data);
+	 form.find(".statusBar").hide();
+	 $.ajax({
+	     url: "/admin/ajax/payoutAction.php",
+	     type: "post",
+	     data: data,
+	     success: function (res) {
+		 if (res.status) {
+		     form.find(".bg-success").text(res.message);
+		     form.find(".bg-success").show();
+		 } else {
+		     form.find(".bg-danger").text(res.message);
+		     form.find(".bg-danger").show();
+		 }
+	     }
+	 });
+	 return false;
+     });
+
+});

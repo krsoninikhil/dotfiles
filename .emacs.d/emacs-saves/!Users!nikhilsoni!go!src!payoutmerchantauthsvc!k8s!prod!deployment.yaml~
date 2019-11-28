@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payoutmerchantauthsvc-gamma
+  namespace: payoutmerchantauthsvc-gamma
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: payoutmerchantauthsvc-gamma
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: payoutmerchantauthsvc-gamma
+        version: v1.0.0
+    spec:
+      imagePullSecrets:
+        - name: regsecret
+      containers:
+        - name: payoutmerchantauthsvc-gamma
+          image: docker-registry.cashfree.com/payoutmerchantauthsvc:0.0.1.3
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+            - name: secret-volume
+              mountPath: /secret
+          env:
+            - name: PAYOUTMERCHANTAUTHSVCCONF
+              value: /config/config.yml
+            - name: TOKEN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: payoutmerchantauthsvc-gamma
+                  key: tokenkey
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: payoutmerchantauthsvc-gamma
+                  key: mysql.username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payoutmerchantauthsvc-gamma
+                  key: mysql.password
+          resources:
+            limits:
+              memory: ".5Gi"
+              cpu: "700m"
+            requests:
+              memory: "256Mi"
+              cpu: "350m"
+          ports:
+            - name: app
+              containerPort: 9188
+      volumes:
+        - name: config-volume
+          configMap:
+            name: payoutmerchantauthsvc-gamma
+        - name: secret-volume
+          secret:
+            secretName: payoutmerchantauthsvc-gamma

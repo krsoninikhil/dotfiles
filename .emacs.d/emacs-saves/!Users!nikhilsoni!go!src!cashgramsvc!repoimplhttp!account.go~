@@ -1,0 +1,50 @@
+package repoimplhttp
+
+import (
+	"cashgramsvc/models"
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"payoutapi/domains"
+)
+
+const (
+	accLog = "repoimplhttp.Account#"
+	accRes = "account"
+)
+
+// Account implements repo interface for getting account info
+type Account struct {
+	Client     *Client
+	AccSvcBase string
+}
+
+// Preference provides account preferences and related data
+func (a *Account) Preferences(ctx context.Context, accountID int) (*models.PrefResponse, error) {
+	res, err := a.Client.Get(fmt.Sprintf("%s/v1/accounts/%d/prefs-data", a.AccSvcBase, accountID), nil)
+	if err != nil {
+		log.Println(accLog+"Preferences", err)
+		return &models.InternalError{models.AppError{Msg: models.InternalErrMsg}}
+	}
+	defer res.Body.Close()
+
+	errorData := &domains.ErrorIntResponse{}
+	switch res.StatusCode {
+	case http.StatusOK:
+		if err := json.NewDecoder(res.Body).Decode(data); err != nil {
+			log.Println("repoimplhttp#parseGetResponse", err)
+			return &models.InternalError{models.AppError{Msg: models.InternalErrMsg}}
+		}
+		return nil
+	default:
+		if err := json.NewDecoder(res.Body).Decode(errorData); err != nil {
+			log.Println("repoimplhttp#parseGetResponse", err)
+			return &models.InternalError{models.AppError{Msg: models.InternalErrMsg}}
+		}
+		return nil, errorData
+	}
+
+	return nil, nil
+}

@@ -1,0 +1,10 @@
+package repo
+
+import (
+	"cashgramsvc/models"
+	"context"
+)
+
+type Transfer interface {
+	Show(ctx context.Context, pk int) (*models.RedeemResponse, error)
+}

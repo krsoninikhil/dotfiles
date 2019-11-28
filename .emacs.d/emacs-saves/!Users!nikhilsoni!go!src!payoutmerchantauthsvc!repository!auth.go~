@@ -1,0 +1,24 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ * Description: Merchant authentication service Repository interface.
+ *
+ * Author: Harsha <harsha@cashfree.com>, March, 2019
+ */
+
+package repository
+
+import (
+	"context"
+
+	"payoutmerchantauthsvc/models"
+)
+
+// Repository represent the service's repository contract
+type Repository interface {
+	Authenticate(context.Context, *models.AuthInput) (*models.AccountDetails, error)
+	AccountDetails(string) (*models.AccountDetails, error)
+	IsWhiteListedIP(context.Context, *models.AccountDetails, string) bool
+}

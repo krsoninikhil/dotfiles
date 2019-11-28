@@ -1,0 +1,87 @@
+<?php
+
+class AxisUtil {
+
+    // this function is directly copied from payoutbank/util/axisAPIUtil.inc.php
+    // and should not be modified directly.
+    public static function parseBankErrorCode ($bankErrorCode) {
+
+        switch ($bankErrorCode) {
+        case 'M1':    // Beneficiary IFSC Number or MMID Invalid
+            return "INVALID_IFSC_FAIL";
+
+        case 'M0':     // Transaction Failed
+        case '95' :    // Transaction Error -Please reprocess the transaction
+        case 'MC' :    // Acquirer Bank does not support this transaction
+        case 'MF' :    // Request not sent to Merchant
+        case 'MG' :    // Transaction  Not allowed
+        case 'N0' :    // Transaction Failed due to no Connectivity
+            return "BAD_GATEWAY";
+
+        case '12' :    // Invalid transaction         NEFT - Both Customer Mobile and Email is not valid.
+        case '13':     // Invalid amount         Beneficiary not acceptable. transfer might go through on retry.
+            return "BAD_REQUEST";
+
+        case '13' :     // Invalid amount      Transaction Amount exceeds IMPS Maximum Limit
+            return "IMPS_AMOUNT_FAIL";
+
+        case 'R01':     // Account closed
+        case 'R02':     // Account transfered
+        case 'R03':     // Account does not exist
+        case 'R04':     // No such account type
+        case 'R05':     // Beneficiary name differs
+        case 'R06':     // Account holder expired
+        case 'R07':     // Account under attachment
+        case 'R08':     // Granishi order received
+        case 'R09':     // Operations suspended
+        case 'R10':     // Party's instruction
+        case 'R11':     // Any other reason
+        case 'R12':     // Credit to NRI account
+        case '92':      // Invalid Beneficiary Details
+        case 'M4':      // Transaction Failed - NRE Account
+        case 'M5':      // Beneficiary Account Closed
+        case 'M6':      // Transaction Failed due to Limit Exceeded
+        case 'M7':      // Invalid MPIN
+            return "INVALID_ACCOUNT_FAIL";
+
+        case 'U8' :     // No response from Beneficiary Bank, Reversal in process
+        case '08' :     // No response from Beneficiary Bank, Reversal in process
+        case '20' :     // Transaction Returned - Invalid Response code
+        case '38':      // Suspected Transaction
+        case '57':      // Transaction not permitted to account holder
+        case '90' :     // Transaction received after Cut Off
+            return "IMPS_MODE_FAIL";
+
+        case '40' :
+            return "TRANSFER_TYPE_NOT_SUPPORTED";
+
+        case '51' :   // Insufficient Balance
+            return "INSUFFICIENT_BALANCE";
+
+        // case 'E9000' :   // For get status bank API, No request found with given request number
+        //     return "NO_SUCH_REQUEST";
+
+        case '94' :   // Duplicate Transaction
+            return "TRANSACTION_PROCESSED";
+
+        // case 'E1004' :   // Amount < Rs.200000 attempted via RTGS, fallback to NEFT
+        //     return "RTGS_AMOUNT_FAIL";
+
+        case 'M2':     // Beneficiary Account Limit exceeded
+        case 'M3':     // Beneficiary Account Frozen
+        case 'MA':     // Transaction decline by Merchant
+                return "RETURNED_FROM_BENEFICIARY";
+
+        case '65' :    // (Daily limit/transaction/rate) limit exceeded
+            error_log("CF_FATAL :: LIMIT_EXCEEDED :: Transaction limit exceeded");
+            return "ERROR_FETCHING_STATUS";
+
+        default:
+            // case '91': Pending Confirmation from Beneficiary bank
+            // case '96': Pending Confirmation from Beneficiary bank
+            return "ERROR_FETCHING_STATUS";
+        }
+    }
+
+
+?>

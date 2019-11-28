@@ -1,0 +1,27 @@
+<?php
+
+class StatsUtil {
+
+    public static function calculate($dbHandle, $rule) {
+        switch ($rule) {
+        case "NEW_BENE_AMOUNT":
+            return static::getNewBeneAmount($dbHandle);
+        case "TRUSTED_BENE_AMOUNT":
+            return static::getTrustedBeneAmount($dbHandle);
+        case "NEW_BENE_NEW_ACCOUNT_AMOUNT":
+            return static::getNewBeneNewAccountAmount($dbHandle);
+        case "DAY_OF_WEEK_ACCOUNT_AMOUNT":
+            return static::getDayOfWeekAccountAmount($dbHandle);
+        default:
+            return null;
+        }
+    }
+
+    public static function getNewBeneAmount($dbHandle) {
+        $date = date("Y-m-d 00:00:00");
+        $newBenes = MPABeneficiaries::getRecentlyAdded($dbHandle, 1, $now=$date);
+
+    }
+
+
+?>

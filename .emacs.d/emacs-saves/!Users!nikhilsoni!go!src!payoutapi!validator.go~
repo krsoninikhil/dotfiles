@@ -1,0 +1,15 @@
+package payoutapi
+
+type customValidator struct {
+	validator *validator.Validate
+}
+
+// Validate is used to do the final validation
+func (cv *customValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
+}
+
+// InitValidator adds custom rules to validator package
+func InitValidator() {
+	v := validator.New()
+	v.RegisterValidation("alphaspace",

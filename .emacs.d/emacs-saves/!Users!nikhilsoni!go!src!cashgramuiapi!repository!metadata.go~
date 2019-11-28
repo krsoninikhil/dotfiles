@@ -1,0 +1,9 @@
+package repository
+
+import "context"
+
+type MetaData interface {
+	GetCGData(ctx context.Context, cfid int)
+	IncOTPSentCount(ctx context.Context, cfid int)
+	IncOTPVerifyCount(ctx context.Context, cfid int)
+}

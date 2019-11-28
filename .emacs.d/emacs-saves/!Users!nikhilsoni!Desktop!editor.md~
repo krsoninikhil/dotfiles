@@ -1,0 +1,12 @@
+;; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with C-x C-f and enter text in its buffer.
+
+x multiple cursors
+x duplicate line
+x move a line up and down
+x Project wide search
+x Goto definitions
+x goto last edit - multiple buffers
+x Interactive tree view of project
+x Auto completion
+X Fuzzy file search

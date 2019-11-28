@@ -1,0 +1,34 @@
+package repoimpldb
+
+import (
+	"context"
+	"database/sql"
+)
+
+const (
+	cgRes = "cashgram"
+	cgLog = "repoimplhttp.Cashgram#"
+
+	insertCG = `insert into PayoutLinks (merchantId, accountId, payoutId, amount, customerName, customerPhone, customerEmail, remarks, linkURL, linkStatus, linkExpiryTime, addedOn) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+)
+
+// Cashgram implements interface for Cashgram repository
+type Cashgram struct {
+	DBConn    *sql.DB
+	CGSvcBase string
+}
+
+// Create add new entry in db table
+func (r *Cashgram) Create(ctx context.Context, cgID string) (models.CreateCGIntResponse, error) {
+	return nil, nil
+}
+
+// Showstatus get Cashgram details from db
+func (r *Cashgram) ShowStatus(ctx context.Context, cgID string) (models.ShowStatusCGIntResponse, error) {
+	return nil, nil
+}
+
+// Destroy set Cashgram as deactivated
+func (r *Cashgram) Destroy(ctx context.Context, cgID string) (models.DestroyIntResponse, error) {
+	return nil, nil
+}

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cashgramuiapi
+  namespace: cashgramuiapi  
+spec:
+  selector:
+    app: cashgramuiapi
+  ports:
+    - port: 80
+      targetPort: 9009
+      protocol: TCP
+      name: cashgramuiapi

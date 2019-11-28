@@ -1,0 +1,14 @@
+package repoimplhttp
+
+import (
+	"context"
+	"payoutapi/domains"
+)
+
+type Auth struct {
+	AuthSvcBase string
+}
+
+func (a *Auth) Authorize(context.Context, *domains.AuthorizeRequest) (*domains.AuthorizeIntResponse, error) {
+
+}

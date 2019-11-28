@@ -1,0 +1,16 @@
+import mysql.connector
+
+
+class DbUtil:
+
+    def get_conn(self):
+        conn = mysql.connector.connect(
+            host = 'localhost',
+            database = 'cfsellers',
+            user = 'nfcpay',
+            passwd = 'nfcpay.123',
+        )
+        return conn
+
+    def get_cur(self):
+        return self.get_conn().cursor()

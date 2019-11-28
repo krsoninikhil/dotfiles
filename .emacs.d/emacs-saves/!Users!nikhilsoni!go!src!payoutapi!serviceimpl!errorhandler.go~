@@ -1,0 +1,10 @@
+package serviceimpl
+
+func createErrorResponse(err error) {
+	message := "Unknown error occured!"
+	if err == domains.ServerError {
+		message = "Something went wrong!"
+	} else if err == domains.UserError {
+		message = err.Error()
+	}
+}

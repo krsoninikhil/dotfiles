@@ -1,0 +1,32 @@
+package config
+
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
+
+// Config provide required configuration fields from passed file
+type Config struct {
+	Debug   bool    `yaml:"debug"`
+	Port    string  `yaml:"port"`
+	SvcHost svcHost `yaml:"svchost"`
+}
+
+type svcHost struct {
+	PayoutInternal string `yaml:"payoutinternal"`
+}
+
+// LoadConfig reads passed configuration file and returns it
+func LoadConfig(configFile string) *Config {
+	config := &Config{}
+	viper.SetConfigFile(configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		panic(fmt.Sprintf("Cannot read config file: %v\n", err))
+	}
+
+	if err := viper.Unmarshal(config); err != nil {
+		panic(fmt.Sprintf("Cannot decode config file: %v\n", err))
+	}
+	return config
+}

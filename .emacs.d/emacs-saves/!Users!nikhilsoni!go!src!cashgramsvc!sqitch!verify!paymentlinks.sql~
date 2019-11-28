@@ -1,0 +1,7 @@
+-- Verify cashgramsvc:paymentlinks on mysql
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

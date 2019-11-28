@@ -1,0 +1,12 @@
+package cacheimpl
+
+func Init(host string) {
+	return &Cache{
+		Client: memcache.New(host)
+	}
+}
+
+// Cache implements interface for caching
+type Cache struct {
+	Client *memcache.Client
+}

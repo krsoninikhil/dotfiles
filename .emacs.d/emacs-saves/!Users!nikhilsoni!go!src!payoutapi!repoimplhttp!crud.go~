@@ -1,0 +1,33 @@
+package repoimplhttp
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"payoutapi/domains"
+)
+
+func handleCreate(res) {
+
+	switch res.StatusCode {
+	case http.StatusCreated:
+		data := &domains.CreateIntResponse{}
+		if err = json.NewDecoder(res.Body).Decode(data); err != nil {
+			log.Println("repoimplhttp#Create", err)
+			return nil, getServerAppError()
+		}
+		return data, nil
+	case http.StatusConflict, http.StatusUnprocessableEntity: // 409, 422
+		data := &domains.ErrorIntResponse{}
+		if err = json.NewDecoder(res.Body).Decode(data); err != nil {
+			log.Println("repoimplhttp#Create", err)
+			return nil, getServerAppError()
+		}
+		return nil, getUserAppError(data)
+	case http.StatusInternalServerError, http.StatusPreconditionFailed: // 500, 412
+		return nil, getServerAppError()
+	}
+
+	log.Printf("repoimplhttp#Create Error Response: (HTTP Status: &d) %s", res.StatusCode, res)
+	return nil, getServerAppError()
+}

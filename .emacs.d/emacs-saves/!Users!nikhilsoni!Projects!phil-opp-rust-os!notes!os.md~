@@ -1,0 +1,173 @@
+## OS
+
+- When computer is turned on, first thing that runs is firmware code
+  (BIOS/UEFI) stored in ROM. It performs [Power-on self test][0],
+  detects RAM and pre-initializes the CPU and hardware.
+- If bootable disk is attached, then, control is transfered to the
+  first 512 bytes of executable code stored in disk, which is called
+  bootloader or first stage of bootloader which will load other
+  stages.
+- Bootloader will load the kernel image into memory, switch in-between
+  required CPU modes and pass certain information from BIOS to kernel.
+- FSF spec for bootloader is [Multiboot][1] and reference
+  implementation is Grub. That means, Grub can load any Multiboot
+  compliant OS.
+- **Single Instruction Multi-Data (SIMD):** A set of standards (MMX,
+  SSE, AVX for x86_64) for using registers in way to inficiently
+  perform same option on multiple data points. Think of it like using
+  vectorized operations instead of using loop for same
+  operation. While this can significantly speed up programs, it's not
+  good for kernel to use this for itself, because kernel needs to back
+  up all the registers on earch interrupt which would be slow since
+  SIMD registers are relatively large. Floating point uses SSE
+  registers, so if SIMD is disabled and floating point had to be used,
+  LLVM can do this by using `soft-float` which used software functions
+  to emulate same operation on normal integers.
+- **VGA Buffers:** Special memory area mapped to VGA hardware which
+  contains the content displayed on the screen.
+- **Spinlock:** Basic mutex that instead of blocking, threads tries
+  locking again and again untill mutex if is free again.
+- **Serial Port**: Legacy communication port to system, preceding
+  USB. OS simulator can redirect the bytes sent over serial port to
+  host OS. ICs that implement serial interface are called UART
+  chips. These chips uses port mapped I/O.
+- Peripheral devices and CPU can communicate either via memory mapped
+  I/O like `0xb8000` for VGA buffer or port mapped I/O which uses
+  different instructions (`in`, `out`) and address space than simple
+  memory access.
+- *CPU Exceptions:* When something illegal happens like devide by 0 or
+  accessing illegal memory addresses, CPU throws [around 20 types][3]
+  of exeption e.g. Page fault, double fault, triple faults etc.
+- Handler functions for these exceptions are listed in table called
+  IDT (Interrupt Descriptor Table), in a 16 bytes predefined format at
+  predefined index.
+- *Calling conventions* specify the details of function calls like
+  where function parameters are place or how results are
+  returned. They also defines *preserved* and *scratch* registers. `C`
+  uses conventions specified in System V ABI.
+- *Preserved Registers* are backed up by the called funtion
+  i.e. _callee-saved_.
+- *Scratch Registers* are backed up by the caller function before
+  calling another function i.e. _caller-saved_.
+- Since exception handler might run in different context, an specific
+  convetion is used.
+- Exception handlers uses x86 interrupt calling conventions which
+  restores all registers values on function return to their original
+  value.
+- Exceptions pass exception stackframe to handler function. Some also
+  pass a error code with stackframe.
+- *Breakpoint Exception:* Defined at index 3 in IDT, it occurs when
+  `int3` instruction is executed on CPU. Debugger replaces the current
+  instruction with `int3` when breakpoint needs to be set.
+- *Double fault* exception is thrown when their is error in calling
+  original exception handler i.e. a particular exception is thrown
+  after a specific exception e.g. a _page fault_ after _page fault_
+  will cause _double fault_.
+- If double fault is not handled too, fatal *triple fault* is thrown,
+  which can't be caught and most hardware react with system reset.
+- To prevent _triple fault_, _double fault_ needs to be handled
+  correctly. Stack has to be valid (not on gaurd page) when _double
+  fault_ handler is invoked as it also requires stack to place stack
+  frame.
+- *Guard Page:* Special memory page at the bottom of stack to detect
+  stack overflow. This page is not mapped to any physical memory so
+  accessing it causes _page fault_.
+- *Interrupt Stack Table (IST):* List of 7 pointer to known good
+  stacks to which hardware can switch before calling handler
+  function. This can avoid the _triple fault_ in case, kernel stack
+  overflows and _double fault_ handler arguments (exception
+  stackframe) cannot be pushed to stack which will cause _triple
+  fault_ if stack is not switched. `options` field in IDT handler
+  entry specifies if and to which stack hardware should switch to.
+- *Task State Segment (TSS):* Data structure which holds 2 stack
+  tables - IST and Privilege Stack Table. Later is used to switch
+  stack when privilege level changes. Linux x86_64 only uses stack
+  table pointers and I/O port permission bitmap features of TSS.
+- TSS uses segmentation system so we need to add an entry to GDT.
+- *Global Descriptor Table:* Structure that contains segment of a
+  program. It was used for memory segmentation and to provide virtual
+  addresses before Paging was a thing. Still used for few things like
+  loading TSS and configuring user/kernel mode.
+- *Segment Selector:* An offset in GDT to specify which descriptor to
+  use, like `index * element size` in an array.
+- *Segment Selector Registers:* Used by processor to get different
+  segment selector values e.g. `CS`, `DS`, etc. Needs to be updated
+  once the GDT is loaded.
+- *Hardware Interrupts:* Async notification to CPU from attached
+  hardware devices.
+- *Interrupts Controller* are separately attached to CPU which
+  aggregates intrerrupts from all devices and notifies to CPU.
+- *Intel 8259 PIC* (Programmable Interrupts Controller) was used
+  before *APIC* but its interface still supported and is easier to
+  implement. Typically 2 of these were chained together with fixed
+  mapping to it's communication lines from 0-15.
+- Each PIC can be configured by 2 I/O ports - command and data.
+- CPU start listening to interrupts on executing `sti` instruction.
+- By default PIT (Programmable Interval Timer) interrupts are enabled
+  which needs to be handled if interrupts are enabled on CPU or a
+  double fault will occur in absence of handler.
+- PIC expect an explict 'end of interrupt' signal before it can send
+  next interrupt. EOI signal tells PIC that interrupt has been
+  processed. So handler function also needs to sent EOI signal.
+- *Deadlock* occurs when a thread try to aquire a lock that will never
+  become free.
+- Keyboard interrupts are also enabled by default and next interrupt
+  is blocked untill scancode of pressed key is read from keyboard's
+  data port.
+- *Memory Protection* ensures a program can only access memory allowed
+  for it. On ARM Cortex-M processors, _Memory Protection Unit (MPU)_
+  does this, on x86, _Segmentation_ and _Paging_ are two techniques.
+- *Segmentation:* It uses memory segment offset to address more memory
+  than whats possible by 16 bit addresses. Special segment registers
+  (`CS`, `DS`, `ES`, etc) contains index into descriptor table, which
+  cantains information about segement like offset, segment size and
+  permissions. A separate table for each process can provide process
+  isolation.
+- *Virtual Memory* address needs to be translated to the _Physical
+  Memory_ address. In segmentation, translation step is adding offset.
+- Segmentation causes problem of _fragmentation_.
+- *Paging* solves fragmentation by dividing virtual and physical
+  address space into small fixed size blocks (4Kb in x86) called
+  _Pages_ and _Frames_ respectively. This way large memory region can
+  be mapped to non-continous small frames.
+- *Internal Fragmentation* is still possible if required memory is
+  less than a page size, but it's much better than external fragmentation.
+- Page mapping is stored in table called *Page Table* instead of
+  registers as incase of segmentation.
+- Page numbers in Page Table are written with fixed interval size to
+  make accessing by processor easier. To save space on non-required
+  page numbers, Multilevel Page Tables are used, in which one table
+  points to another table which ultimately points to frame addresses.
+- In x86, 4 level Paging is used with 4kb page size and each page
+  table with 512 entries each of 8 bytes making a page table fit into
+  single page.
+- Each 8 bytes entry contains 52 bit physical address and rest are
+  used for flags in which seome are allowed to be used by OS.
+- `CR3` register contains address of top level table. And index of
+  Page table to look for is derived from virtual address itself. First
+  12 bits (0-11) represent offset in the final page, next 36 bits
+  (12-47) are 9 bit table index for level 1 to level 4. Bits 48-64 are
+  discarded. So only 64 bit system actually uses only 48 bits for
+  addresses.
+- Last few address translations are cached in *Translation Lookaside
+  Bufffer* or *TLB*.
+- Unlike other caches, TLB is not fully transparent, so on each page
+  table update, kernel needs to update TLB using `invlpg` instruction
+  which removes the specifies page translation from TLB. Reloading
+  `CR3` register flushes the TLB.
+- If a page fault happens, CPU sets `CR2` register to the accessed
+  address that caused it.
+- If kernel is running in virtual address space, page table frames
+  cannot be accessed directly, they need to mapped to virtual
+  addresses which can be done in multiple ways like:
+  - *Identity Mapping:* Map page table frames to same physical
+    address.
+  - *Map at a fixed offset:* Map page tables frames to a fixed offset
+    in virtual address space to physical address.
+  - *Map the complete physical memory:* Map and store all physical
+    memory mapping. Huge pages can also be used to descrease required
+    translations.
+  - *Temporary Mapping:* Map page tables only when they are accessed.
+  - *Recursive Page Tables:* Map a page table recursively to itself
+    from level 4 to level 1. This way page tables can be written on to
+    by tricking CPU into thinking that it's writing on physical frame.

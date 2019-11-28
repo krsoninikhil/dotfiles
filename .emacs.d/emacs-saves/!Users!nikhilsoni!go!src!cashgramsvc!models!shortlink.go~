@@ -1,0 +1,7 @@
+package models
+
+//ShortLinkIntRequest defines request format for creating short link
+type ShortLinkIntRequest struct {
+	OriginalLink string
+	Service      string
+}

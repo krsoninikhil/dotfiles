@@ -1,0 +1,75 @@
+/* CASHFREE INC. PROPRIETARY AND CONFIDENTIAL
+ * ------------------------------------------
+ * Copyright (C) Cashfree Inc - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ *
+ *
+ * Author: Nikhil Soni <nikhil@cashfree.com> April, 2019
+ */
+
+package delivery
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/labstack/echo"
+)
+
+const logCG = "cashgramHandler#"
+
+// ConfigureCashgramHandler configures handler for cashgram
+func ConfigureCashgramHandler(e *echo.Echo, cgSvc service.Cashgram) {
+	h := &cashgramHandler{cgSvc}
+	addCashgramHandler(e, h)
+}
+
+func addCashgramHandler(e *echo.Echo, h *cashgramHandler) {
+	e.POST(urlPreV1+"/createCashgram", h.create)
+	e.GET(urlPreV1+"/getCashgramStatus", h.getStatus)
+	e.POST(urlPreV1+"/deactivateCashgram", h.deactivate)
+}
+
+type cashgramHandler struct {
+	cgSvc service.Cashgram
+}
+
+func (c *cashgramHandler) create(c echo.Context) error {
+	params := &domains.CreateCashgramRequest{}
+	if err = validateRequest(c, &params); err != nil {
+		log.Println(logCG+"create", err)
+		return c.JSON(http.StatusOK, getBadRequestResponse(err)) // http.StatusBadRequest
+	}
+
+	res, err := h.cgSvc.Create(c.Request().Context(), params)
+	if err != nil {
+		log.Println(logCG+"create", err)
+	}
+	return c.JSON(http.StatusOK, res) // http.StatusCreated
+}
+
+func (c *cashgramHandler) getStatus(c echo.Context) error {
+	params := &domains.CashgramIDRequest{}
+	if err = validateRequest(c, &params); err != nil {
+		log.Println(logCG+"getStatus", err)
+		return c.JSON(http.StatusOK, getBadRequestResponse(err)) // http.StatusBadRequest
+	}
+	res, err := h.cgSvc.GetStatus(c.Request().Context(), cgID)
+	if err != nil {
+		log.Println(logCG+"getStatus", err)
+	}
+	return c.JSON(http.StatusOK, res)
+}
+
+func (c *cashgramHandler) deactivate(c echo.Context) error {
+	params := &domains.DeactivateCashgramRequest{}
+	if err = validateRequest(c, &params); err != nil {
+		log.Println(logCG+"deactivate", err)
+		return c.JSON(http.StatusOK, getBadRequestResponse(err)) // http.StatusBadRequest
+	}
+	res, err := h.cgSvc.Deactivate(c.Request().Context(), params)
+	if err != nil {
+		log.Println(logCG+"deactivate", err)
+	}
+	return c.JSON(http.StatusOK, res)
+}

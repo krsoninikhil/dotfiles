@@ -1,0 +1,10 @@
+package repository
+
+import (
+	"cashgramuiapi/models"
+	"context"
+)
+
+type Notif interface {
+	SendSMS(c context.Context, p *models.SMSParams) error
+}

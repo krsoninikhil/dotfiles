@@ -1,0 +1,16 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: urlshortenersvc-gamma
+  namespace: urlshortenersvc-gamma
+data:
+  config.yml: |
+    debug: false
+    port: "9188"
+    timeout: 30
+    svcbase:
+      bitly: "https://api-ssl.bitly.com"
+      awsstack: "d2symy55nay1wq.cloudfront.net"
+    shortlinkdomains:
+      cashgram: "csgr.am"
+      cashfree: "cfre.in"

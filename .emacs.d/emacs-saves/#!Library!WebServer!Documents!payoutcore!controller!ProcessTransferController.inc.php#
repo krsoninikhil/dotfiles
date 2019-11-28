@@ -1,0 +1,360 @@
+<?php
+
+require_once(COMMON . "/util/sqsUtil.inc.php");
+require_once(PAYOUTCORE . '/db/MPABeneficiariesDbUtil.inc.php');
+require_once(PAYOUTCORE . '/db/MPATransfersDbUtil.inc.php');
+require_once(PAYOUTCORE . "/util/notifUtil.inc.php");
+require_once(PAYOUTCORE . "/controller/MPAAccountController.inc.php");
+require_once(PAYOUTCORE . "/controller/MPALedgerController.inc.php");
+require_once(PAYOUTCORE . "/controller/MPARateController.inc.php");
+require_once(PAYOUTCORE . "/controller/MPAReversedTransfersController.inc.php");
+require_once(PAYOUTCORE . "/controller/MPAPayoutModesController.inc.php");
+require_once(PAYOUTCORE . "/controller/PayoutLinkController.inc.php");
+require_once(PAYOUTCORE . "/controller/PayoutRiskController.inc.php");
+
+class ProcessTransferController
+{
+	public static function processTransferResponse($dbHandle, $mongoHandle, $mcHandle, $response, $cfBeneId, $isCheckStatusResponse = 0)
+	{
+		$processResponse = array();
+		$processResponse["status"] = 0;
+		$processResponse["isCompleted"] = 0;
+		$processResponse["message"] = "Unknown error occured while processing request";
+		$isCashgram = false;
+		$transfer = array();
+		$currentTime = date('Y-m-d H:i:s', time());
+		if (isset($response["transferType"])) {
+			$transfer["mode"] = $response["transferType"];
+		} else $transfer["mode"] = "N/A";
+
+		if(!isset($response["cfTransferId"])){
+			return $processResponse;
+		}
+
+		$statusCheck = MPATransfersDbUtil::getTransferInfo($dbHandle,$response["cfTransferId"]);
+		$response["accountId"] = $statusCheck["accountId"];
+
+		if($statusCheck['status'] != 'PENDING'){
+			return $processResponse;
+		}
+
+		$transfer["processedOn"] = $currentTime;
+		$transfer["cfTransferId"] = $response["cfTransferId"];
+		$transfer["status"] = "PENDING";
+		$transfer["bankStatus"] = "ERROR_FETCHING_STATUS";
+
+		$cashgramDetails = PayoutLinkController::getPayoutLinkDetailsForCfTransferId($dbHandle, $response["cfTransferId"]);
+		if ($cashgramDetails['status']) {
+			$isCashgram = true;
+			$payoutLinkDetails = $cashgramDetails['payoutLinkDetails'];
+			$cfCashgramId = $payoutLinkDetails['id'];
+		}
+		if (isset($response["status"]) && $response["status"] == 1) {
+			$transfer["bankStatus"] = $response["statusCode"];
+			$transfer["status"] = static::getTransferStatusFromBankStatus($transfer["bankStatus"]);
+
+			// $response["status"] can be 1 for statusCode = "IN_PROCESS"
+			$successStatuses = array(
+				"COMPLETED",
+				"SENT_TO_BENEFICIARY",
+				"SCHEDULED_FOR_NEXT_WORKINGDAY"
+			);
+
+			// Add ledger entry and update account balance
+			if (in_array($response["statusCode"], $successStatuses)) {
+
+                $transferDetails = MPATransfersDbUtil::getTransferDetailsFromCfTransferId($dbHandle, $response["cfTransferId"]);
+				$charges = array();
+				$charges = static::addLedgerEntryForTransfer($dbHandle, $response["cfTransferId"], $transferDetails);
+				$transfer["serviceCharge"] = $charges["serviceCharge"];
+				$transfer["serviceTax"] = $charges["serviceTax"];
+				$transfer["chargedAmount"] = $charges["chargedAmount"];
+				if (isset($response["txStatusResponse"]) && isset($response["txStatusResponse"]["bankReferenceNo"])) {
+					$transfer["bankRefNo"] = $response["txStatusResponse"]["bankReferenceNo"];
+				} else $transfer["bankRefNo"] = "N/A";
+
+				if (static::updateSuccessfulTransferDetails($dbHandle, $response, $transfer) &&
+					MPAConfigDbUtil::releaseFundsOnHold($dbHandle, $charges["accountId"], $charges["transferAmount"])) {
+
+					if($isCashgram) {
+						PayoutLinkController::changeStatusForCashgram($dbHandle, $cfCashgramId, "REDEEMED");
+					}
+
+					$processResponse["status"] = 1;
+					$processResponse["message"] = "Transfer processed successfully";
+					$processResponse["bankRefNo"] = $transfer["bankRefNo"];
+					$reconCredIds = array(1, 2, 5); // Yes Bank related cred-ids and Indusind added
+					if ($response["statusCode"] != "COMPLETED") {
+
+						if(in_array($transferDetails["cfCredId"], $reconCredIds)){
+							$queueName = static::getReconTransfersQueueName();
+							$messageBody = json_encode(array("cfTransferId" => $response["cfTransferId"]));
+							$attrs = array("processedOn" => $transfer["processedOn"]);
+							$result = SQSUtil::sendMessage($queueName, $messageBody, $attrs);
+						}
+						$notifAttrs = array('cfTransferId' => $response["cfTransferId"], 'isCompleted' => 0);
+					} else {
+						$processResponse["isCompleted"] = 1;
+						$notifAttrs = array('cfTransferId' => $response["cfTransferId"], 'isCompleted' => 1);
+					}
+					if(!$isCashgram) {
+						static::triggerNotificationService("TRANSFER_CONFIRMATION", $response["cfTransferId"], $notifAttrs);
+					}
+				}
+
+                // update today's trasfer data
+                $modeId = MPAPayoutModesController::getModeIdfromTransferType($transferDetails['mode']);
+                PayoutRiskController::updateData($dbHandle, $mongoHandle, $mcHandle, $modeId, $transferDetails);
+
+				return $processResponse;
+			}
+		} else {
+			if (isset($response["errorCode"]) && $response["errorCode"] != "") {
+				$transfer["bankStatus"] = $response["errorCode"];
+			} else $transfer["bankStatus"] = "ERROR_FETCHING_STATUS";
+
+			$transfer["status"] = static::getTransferStatusFromBankStatus($transfer["bankStatus"]);
+
+			if ($transfer["status"] == "REVERSED") {
+				$transfer["status"] = "FAILED";
+			}
+
+			if (isset($response["txStatusResponse"]["bankReferenceNo"])) {
+				$transfer["bankReferenceNo"] = $response["txStatusResponse"]["bankReferenceNo"];
+			}
+
+			if ($transfer["status"] == "FAILED") {
+
+				if($isCashgram && $payoutLinkDetails["linkStatus"] == "PENDING") {
+					PayoutLinkController::changeStatusForCashgram($dbHandle, $cfCashgramId, "EXPIRED");
+				}
+				$notifAttrs = array('cfTransferId' => $response["cfTransferId"], "accountId" => $response["accountId"]);
+
+				if(!$isCashgram) {
+					static::triggerNotificationService("TRANSFER_FAILED", $response["cfTransferId"], $notifAttrs);
+				}
+			}
+		}
+
+		$noActionStatuses = array(
+			"AUTHENTICATION_FAILURE",
+			"ERROR_FETCHING_STATUS",
+			"INSUFFICIENT_BALANCE",
+			"REQUEST_TIMEDOUT",
+			"RETRY_LATER",
+			"IN_PROCESS"
+		);
+
+		if (!isset($transfer["bankReferenceNo"])){
+			$transfer["bankReferenceNo"] = "";
+		}
+		//Fetching details again because bank status and ref no may be updated
+		$details = MPATransfersDbUtil::getTransferInfo($dbHandle, $transfer["cfTransferId"]);
+		if ($isCheckStatusResponse && in_array($transfer["bankStatus"], $noActionStatuses) && ($transfer["bankReferenceNo"] == "" || $details["bankRefNo"] != "")) {
+			$processResponse["message"] = "Transfer status could not be updated";
+		} else if(MPATransfersDbUtil::updateTransferDetailsWithUtr($dbHandle, $transfer)){
+				if ($transfer["status"] == "FAILED") {
+					MPAConfigDbUtil::releaseFundsOnHold($dbHandle, $details["accountId"], $details["amount"]);
+					$processResponse["status"] = 1;
+					$processResponse["message"] = "Transfer processed successfully";
+				}
+		}
+		return $processResponse;
+	}
+
+	public static function processTransferReversal($dbHandle, $cfTransferId, $reason = "")
+	{
+
+		$response = array();
+		$response["status"] = 0;
+		$response["message"] = "Unknown error occured";
+		$isCashgram = false;
+		$transferInfo = MPATransfersDbUtil::getTransferInfo($dbHandle, $cfTransferId);
+		if (!$transferInfo) {
+			$response["message"] = "cfTransferId not found";
+			return $response;
+		}
+
+		if ($transferInfo["status"] != "SUCCESS") {
+			$response["message"] = "Only successful transfers can be reversed";
+			return $response;
+		}
+
+		if (isset($transferInfo["mode"]) && $transferInfo["mode"] == "IMPS" && $reason == "") {
+			$reason = "BENEFICIARY_BANK_NODE_OFFLINE";
+		}
+
+		$accountId = $transferInfo["accountId"];
+		$bankStatus = "RETURNED_FROM_BENEFICIARY";
+		$transferStatus = "REVERSED";
+
+		$chargedAmount = MPATransfersDbUtil::getTransferAmountCharged($dbHandle, $cfTransferId);
+		MPATransfersDbUtil::updateTransferStatus($dbHandle, $cfTransferId, $transferStatus, $bankStatus);
+
+
+		$notifAttrs = array();
+		$notifAttrs["cfTransferId"] = $cfTransferId;
+		$notifAttrs["accountId"] = $accountId;
+		$notifAttrs["amount"] = $chargedAmount;
+		$notifAttrs["processedOn"] = date('Y-m-d H:i:s', time());
+
+		$cashgramDetails = PayoutLinkController::getPayoutLinkDetailsForCfTransferId($dbHandle, $cfTransferId);
+		if ($cashgramDetails['status']) {
+			$isCashgram = true;
+			$payoutLinkDetails = $cashgramDetails['payoutLinkDetails'];
+			$cfCashgramId = $payoutLinkDetails['id'];
+			PayoutLinkController::changeStatusForCashgram($dbHandle, $cfCashgramId, "TRANSFER_REVERSAL");
+		}
+		if(!$isCashgram) {
+			static::triggerNotificationService("TRANSFER_REVERSAL", $cfTransferId, $notifAttrs);
+		}
+
+		$ledgerEntry = array();
+		$ledgerEntry["accountId"] = $accountId;
+		$ledgerEntry["amount"] = $chargedAmount;
+		$ledgerEntry["event"] = "CREDIT";
+		$ledgerEntry["eventType"] = "TRANSFER_REVERSAL";
+		$ledgerEntry["remarks"] = "RevId-" . $cfTransferId . "/Transfer Reversal";
+		$ledgerEntry["eventId"] = $cfTransferId;
+		$ledgerEntry["txTime"] = date('Y-m-d H:i:s', time());
+
+		if (MPALedgerController::addCreditEntryAndUpdateBalance($dbHandle, $ledgerEntry)) {
+			$response["status"] = 1;
+			$response["message"] = "Transfer reversed successfully";
+			MPAReversedTransfersController::addOrUpdateAccountedMPAReversedTransferEntry($dbHandle, $cfTransferId, $reason);
+		}
+		return $response;
+	}
+
+	public static function getTransferStatusFromBankStatus($statusCode)
+	{
+		switch ($statusCode) {
+			case "COMPLETED":
+			case "SCHEDULED_FOR_NEXT_WORKINGDAY":
+			case "SENT_TO_BENEFICIARY":
+				return "SUCCESS";
+
+			case "BAD_GATEWAY":
+			case "ERROR_FETCHING_STATUS":
+			case "IN_PROCESS":
+			case "REQUEST_TIMEDOUT":
+			case "RETRY_LATER":
+			case "INSUFFICIENT_BALANCE":
+			case "TRANSACTION_PROCESSED":
+			case "AUTHENTICATION_FAILURE":
+				return "PENDING";
+
+			case "NO_SUCH_REQUEST":
+			case "QUEUED":
+				return "QUEUED";
+
+			case "BAD_REQUEST":
+			case "IMPS_AMOUNT_FAIL":
+			case "IMPS_MODE_FAIL":
+			case "INVALID_ACCOUNT_FAIL":
+			case "INVALID_IFSC_FAIL":
+			case "RTGS_AMOUNT_FAIL":
+			case "TRANSFER_TYPE_NOT_SUPPORTED":
+			case "FAILED":
+				return "FAILED";
+
+			case "RETURNED_FROM_BENEFICIARY":
+				return "REVERSED";
+
+			default:
+				return "PENDING";
+		}
+	}
+
+	private static function getReconTransfersQueueName()
+	{
+		if (defined("STAGE") && STAGE == "PROD") {
+			return "CFPayoutReconTransfers";
+		}
+		return "CFPayoutReconTransfersTEST";
+	}
+
+	public static function getReconTransfersFromSQS($count)
+	{
+		$queueName = static::getReconTransfersQueueName();
+		$result = SQSUtil::receiveMessages($queueName, $count);
+		$transferData = array();
+
+		if ($result) {
+			foreach ($result as $message) {
+				$transferDataBody = json_decode($message["Body"], true);
+				array_push($transferData, array(
+					"cfTransferId" => $transferDataBody["cfTransferId"],
+					"ReceiptHandle" => $message["ReceiptHandle"]
+				));
+			}
+		}
+		return $transferData;
+	}
+
+	public static function deleteReconTransferFromSQS($ReceiptHandle)
+	{
+		$queueName = static::getReconTransfersQueueName();
+		$result = SQSUtil::deleteMessage($queueName, $ReceiptHandle);
+		return $result;
+	}
+
+	public static function triggerNotificationService($notifType, $notifId, $attrs)
+	{
+		// $queueName = NotifUtil::getNotifQueueName();
+		// $messageBody = json_encode(array("notifType" => $notifType, "notifId" => $notifId));
+		// $result = SQSUtil::sendMessage($queueName, $messageBody, $attrs);
+		NotifUtil::triggerNotificationService($notifType, $notifId, $attrs);
+	}
+
+	public static function addLedgerEntryForTransfer($dbHandle, $cfTransferId, $transferDetails=null)
+	{
+
+		$currentTime = date('Y-m-d H:i:s', time());
+		if (!$transferDetails) {
+		    $transferDetails = MPATransfersDbUtil::getTransferDetailsFromCfTransferId($dbHandle, $cfTransferId);
+		}
+		$accountId = $transferDetails["accountId"];
+		$transferAmount = $transferDetails["amount"];
+		$modeId = MPAPayoutModesController::getModeIdfromTransferType($transferDetails['mode']);
+		$isConnectedPartner = MPAAccountController::isConnectedBankPartner($dbHandle, $accountId);
+
+		$charges = array();
+		$charges = MPARateController::getTransferTDR($dbHandle, $accountId, $modeId, floor($transferAmount));
+		if($isConnectedPartner){
+			$transferAmount = 0;
+		}
+		$chargedAmount = $transferAmount + $charges["serviceTax"] + $charges["serviceCharge"];
+
+		$ledgerEntry = array();
+		$ledgerEntry["accountId"] = $accountId;
+		$ledgerEntry["amount"] = $chargedAmount;
+		$ledgerEntry["event"] = "DEBIT";
+		$ledgerEntry["eventType"] = "PAYOUT_TRANSFER";
+		$ledgerEntry["remarks"] = "RefId-" . $cfTransferId . "/transfer";
+		$ledgerEntry["eventId"] = $cfTransferId;
+		$ledgerEntry["txTime"] = $currentTime;
+		MPALedgerController::addDebitEntryAndUpdateBalance($dbHandle, $ledgerEntry);
+		$charges["chargedAmount"] = $chargedAmount;
+		$charges["accountId"] = $accountId;
+		$charges["transferAmount"] = $transferAmount;
+
+		return $charges;
+
+	}
+
+	public static function updateSuccessfulTransferDetails($dbHandle, $response, $transfer)
+	{
+
+		if (isset($response["transactionDate"])) {
+			$transfer["processedOn"] = $response["transactionDate"];
+		} else $transfer["processedOn"] = date('Y-m-d H:i:s', time());
+
+		if (isset($response["responseNo"])) {
+			$transfer["responseNo"] = $response["responseNo"];
+		} else $transfer["responseNo"] = "N/A";
+
+		return MPATransfersDbUtil::updateSuccessfulTransferDetails($dbHandle, $transfer);
+	}
+
+}
