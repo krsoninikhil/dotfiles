@@ -1,1 +1,0 @@
-alter table PayoutLinks add column test varchar(4) not null;

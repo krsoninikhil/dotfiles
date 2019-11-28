@@ -1,4 +1,0 @@
-FROM scratch
-COPY /bin/main-linux /start  # this assumes build binary already exists
-EXPOSE 9002
-CMD ["/start"]

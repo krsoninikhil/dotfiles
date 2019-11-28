@@ -1,5 +1,0 @@
-package models
-
-const (
-	CGSucessMsg = "Cashgram with id - JOHaN10 successfully deactivated!"
-)

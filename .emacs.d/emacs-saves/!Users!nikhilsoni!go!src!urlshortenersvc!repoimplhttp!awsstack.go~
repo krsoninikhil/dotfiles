@@ -1,7 +1,0 @@
-package repoimplhttp
-
-// Short implements interface for Short repository
-type Short struct {
-	Client *http.Client
-	ShortSvcBase string
-}

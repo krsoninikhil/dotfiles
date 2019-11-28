@@ -1,8 +1,0 @@
-debug: false
-server:
-  address: ":9188"
-context:
-  timeout: 2
-svchost:
-  auth: "http://localhost:9090"
-  payoutinternal: "http://localhost/payoutinternal"

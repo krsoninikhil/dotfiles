@@ -1,8 +1,0 @@
-
-def update(mongo, account_id, cf_bene_id, date, result):
-    collec = mongo.cfsellers.PayoutRiskData
-    collec.update_one(
-        {'accountId': account_id, 'beneId': cf_bene_id, 'date': date},
-        {'$set': {'newBeneAmount': result}},
-        upsert = True
-    )

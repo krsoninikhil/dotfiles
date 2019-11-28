@@ -1,7 +1,0 @@
--- Verify proj:addnewcol on mysql
-
-BEGIN;
-
--- XXX Add verifications here.
-
-ROLLBACK;

@@ -1,5 +1,0 @@
-package repo
-
-type Auth struct {
-	AuthSvcBase string
-}

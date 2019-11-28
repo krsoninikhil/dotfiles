@@ -1,8 +1,0 @@
-package models
-
-import "github.com/shopspring/decimal"
-
-type SMSParams struct {
-	Phone  string
-	Amount decimal.Decimal
-}

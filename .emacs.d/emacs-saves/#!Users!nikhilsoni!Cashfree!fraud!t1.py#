@@ -1,6 +1,0 @@
-import pandas as pd
-
-data = pd.read_csv('data/payouts_2019_01_09.csv')
-data.head()
-
-print('bah')

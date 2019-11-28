@@ -1,5 +1,0 @@
-package service
-
-// Short defines interface for service
-type Short interface {
-}

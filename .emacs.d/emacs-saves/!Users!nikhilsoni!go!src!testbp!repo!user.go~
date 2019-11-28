@@ -1,5 +1,0 @@
-package repo
-
-type User interface {
-}	Show(ctx context.Context, p models.ShowRequest) (models.ShowUserIntResponse, error)
-}

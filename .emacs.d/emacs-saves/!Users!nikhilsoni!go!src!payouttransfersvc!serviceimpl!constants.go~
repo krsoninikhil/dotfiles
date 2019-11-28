@@ -1,6 +1,0 @@
-package serviceimpl
-
-const (
-	sentToBene = "SENT_TO_BENEFICIARY",
-	completed = "COMPLETED",
-)

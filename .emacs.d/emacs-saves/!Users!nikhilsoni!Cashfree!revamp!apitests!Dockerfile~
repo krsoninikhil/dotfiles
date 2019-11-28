@@ -1,6 +1,0 @@
-FROM python:2.7.16-alpine3.10
-
-ADD . /app/
-RUN python2 -m pip install -r requirements_dev.txt --cache-dir /pip/packages
-WORKDIR /app
-CMD ["python2", "start.py"]

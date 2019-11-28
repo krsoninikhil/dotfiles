@@ -1,5 +1,0 @@
-package repo
-
-// Short defines interface for repository
-type Short interface {
-}

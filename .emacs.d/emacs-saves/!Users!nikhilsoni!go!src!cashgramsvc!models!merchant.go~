@@ -1,7 +1,0 @@
-package models
-
-type PrefResponse struct {
-	Balance   float32
-	MinAmount float32
-	MaxAmount float32
-}

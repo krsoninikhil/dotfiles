@@ -1,6 +1,0 @@
-package models
-
-type TransferDetails struct {
-	UTR   string `json:"utr"`
-	RefID string `json:"id"`
-}

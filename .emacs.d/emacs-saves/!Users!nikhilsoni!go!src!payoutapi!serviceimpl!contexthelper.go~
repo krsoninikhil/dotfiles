@@ -1,3 +1,0 @@
-package benesvcimpl
-
-type contextKey string

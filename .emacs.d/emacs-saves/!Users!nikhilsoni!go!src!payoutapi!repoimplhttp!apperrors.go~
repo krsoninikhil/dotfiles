@@ -1,7 +1,0 @@
-package repoimplhttp
-
-import "payoutapi/domains"
-
-func getAppError(err domains.ErrorIntResponse) error {
-	return domains.InvalidParamError
-}

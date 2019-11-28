@@ -1,8 +1,0 @@
-package service
-
-import "context"
-
-type Auth interface {
-	Authorize(c context.Context, p *domains.AuthorizeRequest) (*domains.PayoutRequest, error)
-	Verify(c context.Context) (*domains.PayoutRequest, error)
-}

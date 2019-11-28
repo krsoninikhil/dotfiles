@@ -1,6 +1,0 @@
-CASH_FREE = {
-    'secretKey': 'secretKey123',
-    'appId': 'appId123',
-    'returnUrl': 'https://return.cashfree.com',
-    'notifyUrl': 'https://notify.cashfree.com',
-}

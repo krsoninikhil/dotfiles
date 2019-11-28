@@ -1,6 +1,0 @@
-package serviceimpl
-
-// Short implements interface for Short service
-type Short struct {
-	ShortRepo repo.Short
-}

@@ -1,7 +1,0 @@
-package repositoryhttpimpl
-
-// Cache implements caching operations interface
-type Cache struct {
-	Client  *Client
-	SvcBase string
-}

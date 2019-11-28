@@ -1,9 +1,0 @@
-package middleware
-
-import "github.com/labstack/echo"
-
-func AddRequestID() echo.MiddlewareFunc {
-	return func(c echo.Context) error {
-
-	}
-}

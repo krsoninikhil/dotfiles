@@ -1,9 +1,0 @@
-package models
-
-// RequestHeaders from request meta data
-type RequestHeaders struct {
-	XRequestID string `json:"X-Request-Id"`
-}
-
-// ContextKey context key
-type ContextKey string

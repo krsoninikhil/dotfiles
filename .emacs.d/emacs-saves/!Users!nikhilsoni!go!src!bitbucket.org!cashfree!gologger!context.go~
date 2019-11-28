@@ -1,7 +1,0 @@
-package logger
-
-import "context"
-
-func SetCommonFields(ctx context.Context, cf CommonFields) context.Context {
-	return context.WithValue(ctx, ContextKey(commonFieldsKey), cf)
-}

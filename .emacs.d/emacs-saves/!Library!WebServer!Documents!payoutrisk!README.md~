@@ -1,7 +1,0 @@
-## Payout Internal
-
-![Language](https://img.shields.io/badge/php-5.6-green.svg)
-
-Internal services for payout that uses payout core and provide same interfaces 
-as merchant facing `payout` but for internal clients i.e. without authentication.
-

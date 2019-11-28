@@ -1,5 +1,0 @@
-
-//RequestHeaders from Calling service
-type RequestHeaders struct {
-	XRequestID string `json:"X-Request-Id"`
-}

@@ -1,3 +1,0 @@
-const (
-	BankDetailsMsg = "Amount Deposited Successfully"
-)

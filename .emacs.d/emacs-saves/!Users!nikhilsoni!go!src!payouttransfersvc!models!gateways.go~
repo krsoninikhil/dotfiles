@@ -1,6 +1,0 @@
-package models
-
-var availableGateways = [...]string{
-	"AXIS_CURRENT",
-	"YES_NODAL",
-}

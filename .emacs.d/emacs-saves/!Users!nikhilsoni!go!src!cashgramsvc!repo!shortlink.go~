@@ -1,8 +1,0 @@
-package repo
-
-import "context"
-
-// ShortLink defines interface for getting short link for given JWT token
-type ShortLink interface {
-	Short(ctx context.Context, token string) (string, error)
-}

@@ -1,5 +1,0 @@
-package models
-
-const (
-	sessionTimeoutReason = "CASHGRAM_SESSION_TIMEDOUT"
-)

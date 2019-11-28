@@ -1,9 +1,0 @@
-import logging
-
-
-logging.basicConfig(
-    format = '%(asctim)s %(levelname)s: %(message)s',
-    level = logging.DEBUG,
-    filename = '/tmp/payoutrisk.log',
-    filemode = 'a'
-)

@@ -1,7 +1,0 @@
--- Deploy cashgramsvc:account to mysql
-
-BEGIN;
-
--- XXX Add DDLs here.
-
-COMMIT;

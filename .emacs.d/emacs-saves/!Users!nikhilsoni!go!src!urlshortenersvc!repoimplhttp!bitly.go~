@@ -1,6 +1,0 @@
-package repoimplhttp
-
-type Bitly struct {
-	SvcBase   string
-	AuthToken string
-}

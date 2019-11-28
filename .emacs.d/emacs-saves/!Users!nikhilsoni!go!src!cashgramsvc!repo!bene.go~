@@ -1,7 +1,0 @@
-package repo
-
-import "context"
-
-type Bene interface {
-	Create(ctx context.Context, p *models.AddBeneRequest) (*models.CreateResponse, error)
-}

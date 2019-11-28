@@ -1,7 +1,0 @@
-[package]
-name = "phil-opp-rust-os"
-version = "0.1.0"
-authors = ["Nikhil Soni <krsoninikhil@gmail.com>"]
-edition = "2018"
-
-[dependencies]

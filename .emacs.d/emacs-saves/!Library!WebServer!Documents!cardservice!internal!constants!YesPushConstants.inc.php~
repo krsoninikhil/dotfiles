@@ -1,7 +1,0 @@
-<?php
-class YesPushConstants {
-    const MESSAGE_TYPE = "01";
-    const FUNDING_SOURCE = "02";
-}
-
-?>

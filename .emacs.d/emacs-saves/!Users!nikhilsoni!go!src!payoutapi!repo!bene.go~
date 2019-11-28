@@ -1,9 +1,0 @@
-package repo
-
-type Bene interface {
-	Create()
-	CreateGroup()
-	Show()
-	GetBeneID()
-	Destroy()
-}
